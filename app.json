@@ -13,9 +13,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.duoinforma.app"
     },
     "android": {
+      "package": "com.duoinforma.app",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -24,6 +27,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "@react-native-google-signin/google-signin"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "043b9553-934e-4360-bf2a-ef398ae725dc"
+      }
+    },
+    "owner": "isaquem"
   }
 }
