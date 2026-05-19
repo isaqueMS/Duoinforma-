@@ -1,28 +1,28 @@
-// Import React core library
+// Importação da biblioteca principal do React
 import React from 'react';
 
-// Import essential layout components and status indicators from React Native
+// Importação dos componentes de layout essenciais e indicadores de status do React Native
 import { StyleSheet, View, ActivityIndicator, Text, Platform } from 'react-native';
 
-// Import React Navigation container provider
+// Importação do container de navegação principal (NavigationContainer)
 import { NavigationContainer } from '@react-navigation/native';
 
-// Import Native Stack Navigation library helpers
+// Importação de utilitários de empilhamento de telas nativas (Stack Navigator)
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// Import Bottom Tab Navigation library helpers
+// Importação de utilitários de abas de navegação inferiores (Bottom Tab Navigator)
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-// Import Ionicons vectors from Expo package
+// Importação do pacote oficial de ícones Ionicons do Expo
 import { Ionicons } from '@expo/vector-icons';
 
-// Import our design system style configurations
+// Importação das definições de tema de design e paleta de cores cyberpunk do sistema
 import { theme } from '../styles/theme';
 
-// Import custom authentication state hook
+// Importação do hook customizado para ler dados da sessão de autenticação ativa (AuthContext)
 import { useAuth } from '../context/AuthContext';
 
-// Import local page components
+// Importação dos componentes de telas locais
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -32,20 +32,20 @@ import VerificationScreen from '../screens/VerificationScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ExamScreen from '../screens/ExamScreen';
 
-// Initialize navigation controllers
+// Inicialização dos controladores de fluxo de navegação do React Navigation
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 /**
- * TabNavigator component.
- * Renders the primary bottom tab dashboard layout (Home, Treinamento, Verificação, Perfil)
- * when a user is signed in. Features a customized glassmorphism design.
+ * Componente TabNavigator.
+ * Renderiza o painel principal inferior (Home, Treinamento, Verificação, Perfil)
+ * quando um usuário está com uma sessão autenticada ativa. Conta com design translúcido premium.
  */
 function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        // Dynamic icon loading based on active state and routing name
+        // Carregamento dinâmico de ícones com base na aba ativa e rota de destino
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
@@ -80,8 +80,8 @@ function TabNavigator() {
 }
 
 /**
- * AuthStack component.
- * Layout stack loaded when user session is unauthorized (Splash and Login).
+ * Componente AuthStack.
+ * Pilha de navegação carregada quando não há sessão autenticada ativa (Splash e Login).
  */
 function AuthStack() {
   return (
@@ -93,9 +93,9 @@ function AuthStack() {
 }
 
 /**
- * AppStack component.
- * Main stack layout grouping the central bottom tabs with secondary sub-views
- * like Aprendizado/Exames.
+ * Componente AppStack.
+ * Pilha principal que agrupa as abas inferiores com as sub-telas secundárias,
+ * como Aprendizado e Exames de Certificação.
  */
 function AppStack() {
   return (
@@ -113,14 +113,14 @@ function AppStack() {
 }
 
 /**
- * AppNavigator component.
- * Root navigator bootstrapping AuthStack or AppStack depending on user authenticated state.
+ * Componente AppNavigator (Navegador Raiz).
+ * Gerencia a montagem da árvore de telas (AuthStack ou AppStack) com base no estado do usuário.
  */
 export default function AppNavigator() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    // Show premium loading spinner when app is checking cached credentials
+    // Exibe um indicador de carregamento premium enquanto valida a sessão no banco
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator color={theme.colors.primary} size="large" />
@@ -130,13 +130,13 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      {/* Route matching based on session status */}
+      {/* Seleção do fluxo de navegação baseado no estado de login da sessão */}
       {user ? <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );
 }
 
-// Styling definitions for tabs navigation and loader
+// Definições de estilos e compilação de regras visuais das abas inferiores
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
@@ -172,4 +172,3 @@ const styles = StyleSheet.create({
     marginTop: 2,
   }
 });
-

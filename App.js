@@ -1,41 +1,40 @@
-// Import core React library for building UI components
+// Importação do React core
 import React from 'react';
 
-// Import SafeAreaProvider to handle secure screen margins (e.g., notches on iOS/Android devices)
+// Importação do SafeAreaProvider para gerenciar as margens seguras da tela (notch em dispositivos iOS/Android)
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-// Import Expo StatusBar to configure the color and appearance of the device status bar at the top
+// Importação do StatusBar do Expo para configurar a aparência da barra de status do dispositivo
 import { StatusBar } from 'expo-status-bar';
 
-// Import AuthProvider from AuthContext to wrap the app with authentication state and functions
+// Importação do AuthProvider do AuthContext para envelopar o app com estados e funções de autenticação
 import { AuthProvider } from './src/context/AuthContext';
 
-// Import GameProvider from GameContext to wrap the app with game points, level, and scanning progress
+// Importação do GameProvider do GameContext para envelopar o app com controle de XP, nível e pontuações
 import { GameProvider } from './src/context/GameContext';
 
-// Import the main AppNavigator containing the application navigation flow and screens
+// Importação do navegador principal AppNavigator contendo o fluxo de telas do aplicativo
 import AppNavigator from './src/navigation/AppNavigator';
 
 /**
- * Main application component.
- * This component initializes the global providers (Safe Area, Authentication, and Game State)
- * and mounts the app navigator.
+ * Componente principal da aplicação (App).
+ * Inicializa os provedores globais (Área Segura, Autenticação e Estados do Jogo)
+ * e monta o AppNavigator que gerencia a navegação entre as telas.
  */
 export default function App() {
   return (
-    // SafeAreaProvider manages notch paddings and safe zones across multiple devices
+    // SafeAreaProvider gerencia preenchimentos de notch e zonas seguras do sistema operacional
     <SafeAreaProvider>
-      {/* AuthProvider injects authentication services and current user credentials */}
+      {/* AuthProvider injeta os serviços de sessão e dados cadastrais do agente autenticado */}
       <AuthProvider>
-        {/* GameProvider injects stats, level progress, scanner history, and leaderboard */}
+        {/* GameProvider injeta estatísticas de XP, conquistas, histórico do scanner e exames */}
         <GameProvider>
-          {/* AppNavigator handles rendering Login or main Dashboard according to user state */}
+          {/* AppNavigator controla a exibição da tela de Login ou do Dashboard com base na sessão ativa */}
           <AppNavigator />
-          {/* Configures dark status bar theme to match our cyber aesthetic */}
+          {/* Configura o tema claro da barra de status para combinar com nossa estética cyberpunk escura */}
           <StatusBar style="light" backgroundColor="#070A13" />
         </GameProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
 }
-

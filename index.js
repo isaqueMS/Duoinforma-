@@ -1,12 +1,11 @@
-// Import root component registration utility from Expo.
-// This utility configures the React Native framework to bootstrap the app properly on native and web environments.
+// Importação do utilitário de registro do componente raiz do Expo.
+// Esse utilitário configura o framework React Native para inicializar o app corretamente no mobile e na web.
 import { registerRootComponent } from 'expo';
 
-// Import our root App component containing our global providers and navigation structure
+// Importação do componente App que engloba nossos provedores globais e estruturas de navegação
 import App from './App';
 
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in Expo Go, in a native build (APK/iOS), or on web,
-// the environment is set up and executed appropriately.
+// registerRootComponent chama por baixo dos panos o AppRegistry.registerComponent('main', () => App);
+// Ele também garante que, quer o app seja executado no Expo Go, em uma build nativa (APK/iOS) ou na Web,
+// o ambiente de execução seja configurado e executado adequadamente.
 registerRootComponent(App);
-
