@@ -1,26 +1,26 @@
-// Import core React library
+// Importação do React core
 import React from 'react';
 
-// Import essential layout components from React Native
+// Importação dos componentes essenciais de layout e texto do React Native
 import { StyleSheet, View, Text } from 'react-native';
 
-// Import our design system style configurations
+// Importação das constantes e definições do tema visual padrão do sistema
 import { theme } from '../styles/theme';
 
 /**
- * StatCard component.
- * Displays simple, concise statistics cards (like score points, streak counters, check status, etc.).
- * Includes styled, colorized icon indicators.
+ * Componente StatCard.
+ * Exibe cartões de estatísticas simples e consolidados (como pontuação, contagem de dias ativos, taxa de acerto, etc.).
+ * Inclui indicadores visuais com bordas em neon customizáveis.
  * 
- * @param {string} label - Underneath label describing the metric
- * @param {string|number} value - The primary statistical value to show
- * @param {string} icon - Emoji representing the metric
- * @param {string} color - Neon tint color for the icon border and light background bleed
+ * @param {string} label - Descrição curta da métrica posicionada abaixo do valor principal
+ * @param {string|number} value - O valor estatístico principal a ser destacado
+ * @param {string} icon - Emoji representativo para ilustrar a métrica
+ * @param {string} color - Tom de cor neon para o contêiner do ícone e efeitos secundários
  */
 export default function StatCard({ label, value, icon, color = theme.colors.primary }) {
   return (
     <View style={[styles.card, { borderColor: 'rgba(255, 255, 255, 0.05)' }]}>
-      {/* Dynamic background opacity bleed (appending "15" hex suffix for ~8% opacity) */}
+      {/* Opacidade de fundo dinâmica (adicionando sufixo hexadecimal "15" para ~8% de opacidade) */}
       <View style={[styles.iconContainer, { backgroundColor: `${color}15`, borderColor: color }]}>
         <Text style={styles.iconText}>{icon}</Text>
       </View>
@@ -32,10 +32,10 @@ export default function StatCard({ label, value, icon, color = theme.colors.prim
   );
 }
 
-// Layout styling rules for inline statistics columns
+// Estilizações de grade e espaçamentos do componente de estatísticas
 const styles = StyleSheet.create({
   card: {
-    flex: 1, // Expand dynamically to fill parent row column layout
+    flex: 1, // Expande uniformemente na linha de colunas do contêiner pai
     flexDirection: 'row',
     alignItems: 'center',
     padding: theme.spacing.md,
@@ -71,4 +71,3 @@ const styles = StyleSheet.create({
     marginTop: 2,
   }
 });
-

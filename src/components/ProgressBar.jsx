@@ -1,25 +1,25 @@
-// Import React to build components
+// Importação do React core
 import React from 'react';
 
-// Import essential layout components from React Native
+// Importação dos componentes de layout e estilização essenciais do React Native
 import { StyleSheet, View, Text } from 'react-native';
 
-// Import LinearGradient from Expo to compile highlighted overlays
+// Importação do LinearGradient do Expo para compilar sobreposições iluminadas
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Import our design system style configurations
+// Importação das constantes e definições de tema de design
 import { theme } from '../styles/theme';
 
 /**
- * ProgressBar component.
- * Displays level completion progress, exam performance levels, or timeline ticks.
- * Features a glowing background effect.
+ * Componente ProgressBar.
+ * Exibe o progresso de conclusão de níveis, performance em exames ou preenchimento de metas.
+ * Conta com efeito luminoso (glow) característico da identidade visual.
  * 
- * @param {number} progress - Float number between 0 and 1 signifying completion percentage
- * @param {string} label - Text label on the left of the progress track
- * @param {string} valueText - Value label on the right side of the progress track
- * @param {string} color - Fill color code of the active bar
- * @param {string} glowColor - Secondary shadow/glow color configuration
+ * @param {number} progress - Valor decimal entre 0 e 1 indicando a porcentagem de progresso
+ * @param {string} label - Rótulo de texto no lado esquerdo da barra de progresso
+ * @param {string} valueText - Rótulo de valor numérico no lado direito da barra de progresso
+ * @param {string} color - Código de cor de preenchimento da barra ativa
+ * @param {string} glowColor - Configuração da cor de sombra/brilho secundária
  */
 export default function ProgressBar({ 
   progress, 
@@ -28,12 +28,12 @@ export default function ProgressBar({
   color = theme.colors.primary,
   glowColor = theme.colors.primaryGlow
 }) {
-  // Normalize percentage within safe boundaries [0, 100]%
+  // Normaliza o progresso em uma porcentagem segura dentro dos limites de 0% a 100%
   const percentage = Math.min(Math.max(progress * 100, 0), 100);
 
   return (
     <View style={styles.container}>
-      {/* Renders descriptive headers only if label or value text are supplied */}
+      {/* Renders cabeçalhos de identificação apenas se 'label' ou 'valueText' forem informados */}
       {(label || valueText) && (
         <View style={styles.labelContainer}>
           {label && <Text style={styles.label}>{label}</Text>}
@@ -41,14 +41,14 @@ export default function ProgressBar({
         </View>
       )}
       
-      {/* The empty background track */}
+      {/* O trilho vazio de fundo da barra de progresso */}
       <View style={styles.track}>
-        {/* Animated fill layout styling based on calculations */}
+        {/* Preenchimento ativo dimensionado de acordo com a porcentagem calculada */}
         <View style={[
           styles.fill, 
           { width: `${percentage}%`, backgroundColor: color, shadowColor: color }
         ]}>
-          {/* Overlay highlight gradient adding realistic glassy depth */}
+          {/* Brilho gradiente superior para criar sensação tridimensional de vidro */}
           <LinearGradient
             colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0)']}
             start={{ x: 0, y: 0 }}
@@ -61,7 +61,7 @@ export default function ProgressBar({
   );
 }
 
-// Styling definitions for progress tracker components
+// Estilizações estruturais e de sombreamento tridimensional da barra de progresso
 const styles = StyleSheet.create({
   container: {
     width: '100%',
@@ -102,4 +102,3 @@ const styles = StyleSheet.create({
     flex: 1,
   }
 });
-

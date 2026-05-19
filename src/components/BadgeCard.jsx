@@ -1,41 +1,41 @@
-// Import core React library
+// Importação da biblioteca principal do React
 import React from 'react';
 
-// Import essential layout components from React Native
+// Importação dos componentes de layout e exibição essenciais do React Native
 import { StyleSheet, View, Text } from 'react-native';
 
-// Import our design system style tokens
+// Importação das constantes e definições de tema de design
 import { theme } from '../styles/theme';
 
 /**
- * BadgeCard component.
- * Displays achievements or level badges with visual indicators
- * for locked and unlocked states.
+ * Componente BadgeCard.
+ * Exibe conquistas ou emblemas de nível com indicadores visuais diferenciados
+ * para estados bloqueados e desbloqueados.
  * 
- * @param {string} badge - The emoji/icon representing the achievement/badge
- * @param {string} title - The name of the badge or level title
- * @param {string} description - The criteria or description for unlocking this badge
- * @param {boolean} isUnlocked - True if the user has completed this milestone
+ * @param {string} badge - O emoji/ícone que representa a conquista/emblema
+ * @param {string} title - O nome do emblema ou título do nível
+ * @param {string} description - Os critérios ou descrição para desbloquear este emblema
+ * @param {boolean} isUnlocked - Verdadeiro se o usuário já completou este marco
  */
 export default function BadgeCard({ badge, title, description, isUnlocked = false }) {
   return (
     <View style={[
       styles.card,
-      // Dynamic background border style based on unlock state
+      // Estilo de borda e fundo dinâmico baseado no status de desbloqueio
       isUnlocked ? styles.unlockedCard : styles.lockedCard
     ]}>
       <View style={[
         styles.iconContainer,
-        // Dynamic circular icon style
+        // Estilo dinâmico do container circular do ícone
         isUnlocked ? styles.unlockedIcon : styles.lockedIcon
       ]}>
-        {/* Renders locked padlock or actual emoji based on unlock status */}
+        {/* Renderiza um cadeado fechado ou o emoji real dependendo do status de desbloqueio */}
         <Text style={styles.badgeText}>{isUnlocked ? badge : '🔒'}</Text>
       </View>
       <View style={styles.info}>
         <Text style={[
           styles.title,
-          // Dynamic title color scheme
+          // Paleta de cores dinâmica para o título da conquista
           isUnlocked ? styles.unlockedTitle : styles.lockedTitle
         ]}>{title}</Text>
         <Text style={styles.description}>{description}</Text>
@@ -44,7 +44,7 @@ export default function BadgeCard({ badge, title, description, isUnlocked = fals
   );
 }
 
-// Styles definition for standard and highlighted state badges
+// Definição de estilos visuais para os estados normais e destacados das conquistas
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',

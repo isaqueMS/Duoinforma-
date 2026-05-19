@@ -1,35 +1,35 @@
-// Import core React library
+// Importação do React core
 import React from 'react';
 
-// Import essential React Native layout and interactive components
+// Importação dos componentes essenciais de layout, gestos, imagens e plataforma do React Native
 import { StyleSheet, View, Text, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
 
-// Import Ionicons icon collection from Expo icons library
+// Importação da coleção de ícones Ionicons do Expo
 import { Ionicons } from '@expo/vector-icons';
 
-// Import our central design theme configuration
+// Importação das constantes e configurações globais do tema visual
 import { theme } from '../styles/theme';
 
-// Import custom authentication state hook
+// Importação do hook de acesso ao contexto de autenticação de usuários
 import { useAuth } from '../context/AuthContext';
 
-// Import custom game state and level configuration hook
+// Importação do hook de acesso ao contexto do sistema de pontos e progresso
 import { useGame } from '../context/GameContext';
 
-// Load our system logo asset
+// Carrega o asset de logotipo padrão do sistema
 const LOGO = require('../../assets/logo.png');
 
 /**
- * Header component.
- * Rendered at the top of pages to display consistent application state, navigation,
- * dynamic titles/subtitles, user profile navigation, and system logo badge.
+ * Componente Header (Cabeçalho).
+ * Renderizado no topo das telas principais para exibir navegação, títulos dinâmicos,
+ * status de autenticação ativa e atalho para o perfil do agente ativo.
  * 
- * @param {string} title - The page header title
- * @param {string} subtitle - Secondary descriptive title below the main title
- * @param {object} navigation - React Navigation navigation prop to navigate between pages
- * @param {boolean} showBack - Forced flag to render back chevron button
- * @param {boolean} showAvatar - Toggle avatar/profile image rendering in header
- * @param {function} onBack - Explicit callback function for handling back press overrides
+ * @param {string} title - O título principal da tela exibido no cabeçalho
+ * @param {string} subtitle - Subtítulo descritivo secundário
+ * @param {object} navigation - Propriedade de navegação do React Navigation
+ * @param {boolean} showBack - Força a exibição do botão de retorno
+ * @param {boolean} showAvatar - Controla a exibição da miniatura do perfil/avatar no cabeçalho
+ * @param {function} onBack - Callback customizada executada ao retornar, sobrepondo o padrão
  */
 export default function Header({ 
   title, 
@@ -39,24 +39,23 @@ export default function Header({
   showAvatar = true,
   onBack
 }) {
-  // Extract authenticated user object
+  // Extrai o registro do usuário autenticado no Firebase
   const { user } = useAuth();
-  // Extract level and badge information
+  // Extrai as informações de nível de XP do usuário
   const { getCurrentLevel } = useGame();
   
   const currentLevel = getCurrentLevel();
-  // Dynamically calculate if a back action is valid and possible
+  // Valida dinamicamente se a ação de voltar está disponível no contexto atual
   const canGoBack = showBack || !!onBack || (navigation && navigation.canGoBack());
 
-  // Triggers navigation jump to the Perfil tab on header avatar click
+  // Navega para a aba de Perfil ao clicar no ícone do cabeçalho
   const handleAvatarPress = () => {
     if (navigation) {
-      // Navigate to 'Perfil' screen using navigation prop
       navigation.navigate('Perfil');
     }
   };
 
-  // Triggers back navigation or execute callback override
+  // Aciona o retorno na árvore de telas ou executa a callback customizada
   const handleBackPress = () => {
     if (onBack) {
       onBack();
@@ -67,7 +66,7 @@ export default function Header({
 
   return (
     <View style={styles.headerContainer}>
-      {/* Left Area: Renders Back button or standard system logo */}
+      {/* Seção Esquerda: Exibe botão de voltar ou o logo corporativo */}
       <View style={styles.leftSection}>
         {canGoBack ? (
           <TouchableOpacity 
@@ -87,7 +86,7 @@ export default function Header({
         )}
       </View>
 
-      {/* Center Area: Title and Subtitle display with truncation */}
+      {/* Seção Central: Título e Subtítulo principais da tela ativa */}
       <View style={styles.centerSection}>
         <Text style={styles.titleText} numberOfLines={1}>
           {title}
@@ -99,7 +98,7 @@ export default function Header({
         )}
       </View>
 
-      {/* Right Area: Dynamic Avatar image or level badge */}
+      {/* Seção Direita: Miniatura circular do avatar ou emoji do nível atual */}
       <View style={styles.rightSection}>
         {showAvatar && (
           <TouchableOpacity 
@@ -121,11 +120,11 @@ export default function Header({
   );
 }
 
-// Layout styling rules using high-fidelity neon borders and platform shadows
+// Estilos visuais neon e compensação de área segura com base no sistema operacional
 const styles = StyleSheet.create({
   headerContainer: {
     width: '100%',
-    // Dynamic height compensation on Android devices to account for status bar height
+    // Compensação dinâmica de altura no Android para evitar sobrepor a barra de status
     height: Platform.OS === 'android' ? 64 + (StatusBar.currentHeight || 24) : 64,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 0,
     flexDirection: 'row',
@@ -247,4 +246,3 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-

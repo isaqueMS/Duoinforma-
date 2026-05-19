@@ -1,26 +1,26 @@
-// Import React and standard state/ref management hooks
+// Importação do React core e hooks para gerenciamento de referências e animação
 import React, { useRef } from 'react';
 
-// Import essential layout and animation utilities from React Native
+// Importação dos componentes de estilização, texto, clique e animações do React Native
 import { StyleSheet, Text, TouchableOpacity, Animated } from 'react-native';
 
-// Import LinearGradient from Expo to construct glowing cyber gradients
+// Importação do LinearGradient do Expo para desenhar fundos gradientes cibernéticos vibrantes
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Import design system style configurations
+// Importação das constantes e definições de tema de design
 import { theme } from '../styles/theme';
 
 /**
- * NeonButton component.
- * Custom glowing action button with spring animation feedback on press,
- * supports multiple visual variants (primary neon blue, secondary magenta, accent green, danger red, and outline).
+ * Componente NeonButton.
+ * Botão customizado com brilho neon e efeitos físicos de mola (spring animation) ao clicar.
+ * Suporta múltiplas variantes de design (neon azul principal, magenta secundário, verde acento, vermelho perigo e outline translúcido).
  * 
- * @param {function} onPress - Callback function triggered on button press
- * @param {string} title - Text displayed inside the button
- * @param {string} variant - Visual design style ('primary' | 'secondary' | 'accent' | 'danger' | 'outline')
- * @param {object} style - External layout overrides for button container
- * @param {object} textStyle - External text color/font override props
- * @param {boolean} disabled - Blocks touch interactions and displays dark theme
+ * @param {function} onPress - Função executada quando o botão for acionado
+ * @param {string} title - Texto exibido no centro do botão
+ * @param {string} variant - Estilo de cor ('primary' | 'secondary' | 'accent' | 'danger' | 'outline')
+ * @param {object} style - Estilos de layout customizados para o contêiner externo
+ * @param {object} textStyle - Estilos de cores ou fontes customizados para o rótulo do texto
+ * @param {boolean} disabled - Define se o botão está desabilitado, travando cliques e escurecendo cores
  */
 export default function NeonButton({ 
   onPress, 
@@ -30,10 +30,10 @@ export default function NeonButton({
   textStyle,
   disabled = false
 }) {
-  // Animation scale value ref to create click shrink effects
+  // Referência de valor de animação de escala para efeito de clique (shrink/bounce)
   const scaleValue = useRef(new Animated.Value(1)).current;
 
-  // Spring animation on button touch start - shrinks button slightly
+  // Efeito de encolhimento físico de mola ao pressionar o botão
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
       toValue: 0.96,
@@ -41,7 +41,7 @@ export default function NeonButton({
     }).start();
   };
 
-  // Spring animation on button touch end - returns button to full size
+  // Efeito de retorno à escala total ao liberar o clique
   const handlePressOut = () => {
     Animated.spring(scaleValue, {
       toValue: 1,
@@ -49,7 +49,7 @@ export default function NeonButton({
     }).start();
   };
 
-  // Selects dual gradient colors matching standard cyber theme
+  // Seleciona a combinação dupla de cores baseada na variante visual
   const getGradientColors = () => {
     if (disabled) {
       return [theme.colors.surfaceSecondary, theme.colors.surfaceSecondary];
@@ -69,11 +69,11 @@ export default function NeonButton({
     }
   };
 
-  // Outline style flag determination
+  // Validação booleana se a variante selecionada é outline/borda translúcida
   const isOutline = variant === 'outline';
 
   return (
-    // Scaled container wrapping touch action for smooth feedback
+    // Invólucro animado para controle de pulsação e escala física
     <Animated.View style={[{ transform: [{ scale: scaleValue }] }, style]}>
       <TouchableOpacity
         onPress={onPress}
@@ -87,7 +87,7 @@ export default function NeonButton({
           disabled && styles.disabledContainer
         ]}
       >
-        {/* Render horizontal gradient background on active filled buttons */}
+        {/* Renderiza o gradiente de fundo nos botões ativos preenchidos */}
         <LinearGradient
           colors={getGradientColors()}
           start={{ x: 0, y: 0 }}
@@ -108,7 +108,7 @@ export default function NeonButton({
   );
 }
 
-// Neon button styles with heavy contrast text colors and shadows
+// Estilizações de botões com alto contraste e sombreamento para efeitos tridimensionais
 const styles = StyleSheet.create({
   buttonContainer: {
     borderRadius: theme.roundness.md,
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonText: {
-    color: '#000000', // Black text for high contrast on glowing buttons
+    color: '#000000', // Texto preto para máximo contraste com o brilho neon do botão
     fontFamily: theme.fonts.bold,
     fontSize: 16,
     fontWeight: 'bold',
@@ -152,4 +152,3 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
   }
 });
-

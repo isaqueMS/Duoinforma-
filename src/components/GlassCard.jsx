@@ -1,27 +1,27 @@
-// Import React to build the component
+// Importação do React core
 import React from 'react';
 
-// Import core stylesheet and view components from React Native
+// Importação dos componentes de layout e estilização essenciais do React Native
 import { StyleSheet, View } from 'react-native';
 
-// Import BlurView from Expo to implement native glassmorphism blur overlays
+// Importação do BlurView do Expo para implementar efeitos nativos de glassmorphism desfocado
 import { BlurView } from 'expo-blur';
 
-// Import theme style variables
+// Importação das constantes e definições de tema de design
 import { theme } from '../styles/theme';
 
 /**
- * GlassCard component.
- * Implements a high-fidelity glassmorphism card with dark opacity, 
- * customizable blur intensity, and neon borders based on active state.
+ * Componente GlassCard.
+ * Implementa um cartão com visual translúcido de vidro (glassmorphism),
+ * intensidade de desfoque customizável e bordas em neon baseadas no status.
  * 
- * @param {React.ReactNode} children - Nested component content
- * @param {object} style - Optional inline style overrides
- * @param {number} intensity - Blur opacity overlay intensity (0-100)
- * @param {string} borderType - Color scheme of borders ('primary' | 'neonPrimary' | etc.)
+ * @param {React.ReactNode} children - Conteúdo aninhado do componente
+ * @param {object} style - Estilos extras para sobrepor os padrões do contêiner
+ * @param {number} intensity - Intensidade de opacidade do desfoque (0-100)
+ * @param {string} borderType - Esquema de cores das bordas ('primary' | 'neonPrimary' | etc.)
  */
 export default function GlassCard({ children, style, intensity = 40, borderType = 'primary' }) {
-  // Determine border color based on theme
+  // Determina a cor da borda de acordo com as especificações do tema
   const getBorderColor = () => {
     switch (borderType) {
       case 'primary': return theme.colors.border;
@@ -40,7 +40,7 @@ export default function GlassCard({ children, style, intensity = 40, borderType 
       { borderColor: getBorderColor() },
       style
     ]}>
-      {/* Renders the native blur effect on iOS/Android or falls back on web */}
+      {/* Renderiza o efeito de desfoque nativo no iOS/Android com fallback no web */}
       <BlurView intensity={intensity} tint="dark" style={styles.blur}>
         <View style={styles.content}>
           {children}
@@ -50,18 +50,18 @@ export default function GlassCard({ children, style, intensity = 40, borderType 
   );
 }
 
-// Styling definitions for the glassmorphism component
+// Definições de estilos visuais e sombreamentos do cartão translúcido
 const styles = StyleSheet.create({
   container: {
     borderRadius: theme.roundness.lg,
     borderWidth: 1.5,
-    backgroundColor: 'rgba(14, 19, 38, 0.7)', // Semi-transparent cyber card body
+    backgroundColor: 'rgba(14, 19, 38, 0.7)', // Fundo semitransparente estilo ficção científica
     overflow: 'hidden',
     shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 10,
-    elevation: 4, // Android shadow
+    elevation: 4, // Sombreamento para dispositivos Android
   },
   blur: {
     width: '100%',
@@ -70,4 +70,3 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
   }
 });
-

@@ -1,28 +1,28 @@
-// Import core React hooks
+// Importação do React core e hooks essenciais
 import React, { useEffect, useRef } from 'react';
 
-// Import core layout, animation, and easing utilities from React Native
+// Importação dos componentes de layout, animações estruturais e suavização de movimentos do React Native
 import { StyleSheet, View, Animated, Easing } from 'react-native';
 
-// Import central design theme tokens
+// Importação das constantes e definições de tema de design
 import { theme } from '../styles/theme';
 
 /**
- * ScannerAnimation component.
- * Renders a futuristic cyber grid overlay with an animated horizontal laser scanning line.
- * Used during security checks, QR code scans, or database processing visual states.
+ * Componente ScannerAnimation.
+ * Renderiza uma grade cibernética futurista sobreposta com uma linha de varredura laser horizontal animada.
+ * Utilizado durante checagens de segurança, varredura de URLs ou no processamento de status.
  * 
- * @param {boolean} active - Starts/stops the infinite loop laser translation animation
- * @param {string} color - The primary glow color for the laser line
+ * @param {boolean} active - Controla se a animação infinita de movimento do laser está ativa
+ * @param {string} color - Cor primária do brilho do feixe de laser
  */
 export default function ScannerAnimation({ active = false, color = theme.colors.primary }) {
-  // Floating translation animated coordinate reference
+  // Referência de valor de animação de translação do laser
   const animatedValue = useRef(new Animated.Value(0)).current;
 
-  // React hook to handle start, loop, and cleanup of the laser scanning animation
+  // Hook useEffect que lida com a montagem, loop infinito e limpeza da animação do laser
   useEffect(() => {
     if (active) {
-      // Loop sequence: moves from top to bottom (2s) then bottom to top (2s) infinitely
+      // Loop infinito: o laser desce do topo ao rodapé em 2s e sobe de volta em 2s continuamente
       Animated.loop(
         Animated.sequence([
           Animated.timing(animatedValue, {
@@ -40,23 +40,23 @@ export default function ScannerAnimation({ active = false, color = theme.colors.
         ])
       ).start();
     } else {
-      // Return laser line immediately to the top of the card
+      // Retorna a linha do laser instantaneamente para o topo
       animatedValue.setValue(0);
     }
   }, [active]);
 
-  // If the animation is inactive, do not paint it
+  // Caso o scanner não esteja ativo, não renderiza nada em tela
   if (!active) return null;
 
-  // Interpolate position from top (0%) to bottom (100% / 180px offset)
+  // Interpola a posição Y entre o topo (0%) e o limite da caixa (100% / offset de 180px)
   const translateY = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 180] // Height boundary matching styles.scannerBox
+    outputRange: [0, 180] // Limite de altura proporcional a styles.scannerBox
   });
 
   return (
     <View style={styles.scannerBox}>
-      {/* Dynamic Futuristic Grid Background */}
+      {/* Grade de fundo futurista estilizada */}
       <View style={styles.gridOverlay}>
         <View style={styles.horizontalLine} />
         <View style={styles.horizontalLine} />
@@ -68,7 +68,7 @@ export default function ScannerAnimation({ active = false, color = theme.colors.
         <View style={styles.verticalLine} />
       </View>
       
-      {/* Glowing Scanning Laser Beam Line */}
+      {/* Feixe laser luminoso de varredura animado */}
       <Animated.View style={[
         styles.laserBeam, 
         { 
@@ -81,7 +81,7 @@ export default function ScannerAnimation({ active = false, color = theme.colors.
   );
 }
 
-// Styling configurations for cyber grids and absolute overlay laser layers
+// Estilizações de posicionamento e sombras do laser e das grades do scanner
 const styles = StyleSheet.create({
   scannerBox: {
     height: 180,
@@ -128,6 +128,5 @@ const styles = StyleSheet.create({
   }
 });
 export const styles_verticalLine_helper = StyleSheet.create({
-  // Helper styling for extra customization placeholders
+  // Helper de estilização para customizações extras futuras
 });
-
