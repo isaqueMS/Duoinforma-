@@ -1,22 +1,22 @@
-// Import core React libraries and state hook modules
+// Importação do React core e hooks essenciais
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
-// Import custom authentication state hook
+// Importação do hook de acesso ao contexto de autenticação do usuário
 import { useAuth } from './AuthContext';
 
-// Import Firebase config flags and database connections
+// Importação das flags de status do Firebase e conexões de banco de dados
 import { isFirebaseEnabled, db } from '../../firebase.config';
 
-// Import Firestore CRUD helpers to store and load gamestate data
+// Importação de métodos auxiliares do Firestore para gerenciar dados do jogo
 import { doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
-// Import AsyncStorage for persistent game state caching on offline devices
+// Importação da biblioteca AsyncStorage para cache local persistente offline
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Create a React context to expose game status variables
+// Criação do objeto do React Context para propagar as estatísticas do jogo
 const GameContext = createContext({});
 
-// Progression criteria matching levels to point scores
+// Definição dos critérios de progressão de nível de acordo com as faixas de pontos
 const LEVELS = [
   { minPoints: 0, title: 'Recruta Digital', badge: '🤖' },
   { minPoints: 100, title: 'Cibercadete', badge: '🛡️' },
@@ -26,7 +26,7 @@ const LEVELS = [
   { minPoints: 1500, title: 'Mestre Anti-Fake', badge: '👑' }
 ];
 
-// Achievements with unique IDs, titles, descriptions, and XP rewards
+// Lista estática de conquistas (achievements) com títulos, descrições e bônus de XP
 const ACHIEVEMENTS = [
   { id: 'first_training', title: 'Primeiro Alerta', description: 'Concluiu a análise da primeira postagem.', badge: '⚡', points: 30 },
   { id: 'perfect_3', title: 'Analista Preciso', description: 'Acertou 3 análises seguidas no Treinamento.', badge: '🎯', points: 50 },
@@ -39,15 +39,16 @@ const ACHIEVEMENTS = [
 ];
 
 /**
- * GameProvider component.
- * Manages XP scoring, daily streaks, training modules completion lists,
- * badges earned, scan URL logs, age/location metadata and Firestore synchronizations.
+ * Componente GameProvider.
+ * Gerencia a pontuação (XP), ofensiva diária (streak), lista de treinamentos concluídos,
+ * conquistas desbloqueadas, histórico de varreduras de segurança do scanner,
+ * metadados demográficos do usuário e sincronização em nuvem via Firestore.
  */
 export const GameProvider = ({ children }) => {
-  // Obtain current user and connection states
+  // Obtém o registro de usuário autenticado
   const { user, isOffline } = useAuth();
   
-  // Game state properties
+  // Declaração dos estados internos do jogo
   const [points, setPoints] = useState(0);
   const [streak, setStreak] = useState(1);
   const [completedTrainings, setCompletedTrainings] = useState([]);
@@ -61,7 +62,7 @@ export const GameProvider = ({ children }) => {
   const [location, setLocation] = useState(null);
 
   /**
-   * Helper function to calculate current level title and badge emoji.
+   * Retorna o título e o badge do nível atual com base nos pontos de XP
    */
   const getCurrentLevel = () => {
     let current = LEVELS[0];
@@ -76,8 +77,8 @@ export const GameProvider = ({ children }) => {
   };
 
   /**
-   * Fetches top-performing user scores from the cloud database
-   * or falls back to simulated entries if offline.
+   * Busca a lista de líderes (leaderboard) ordenada por maior XP
+   * de forma remota no Firestore ou recorre a dados fictícios se offline.
    */
   const fetchLeaderboard = async () => {
     if (!isFirebaseEnabled) {
@@ -91,7 +92,7 @@ export const GameProvider = ({ children }) => {
     }
 
     try {
-      // Query top 10 users ordered by points desc
+      // Cria consulta ordenando os usuários por pontos no Firestore (limitando aos 10 melhores)
       const q = query(collection(db, 'gamestate'), orderBy('points', 'desc'), limit(10));
       const querySnapshot = await getDocs(q);
       const list = [];
@@ -107,7 +108,7 @@ export const GameProvider = ({ children }) => {
         rank++;
       });
 
-      // If empty or has very few items, append mock data for visual layout stability
+      // Caso o banco remoto tenha poucos dados, mescla com dados estáticos para visual elegante no app
       if (list.length < 4) {
         const mockList = [
           { rank: list.length + 1, name: 'CyberGuardian_9', points: 2850, level: 'Mestre Anti-Fake 👑' },
@@ -116,7 +117,7 @@ export const GameProvider = ({ children }) => {
           { rank: list.length + 4, name: 'CibernautaReal', points: 1450, level: 'Guardião da Verdade 🔮' }
         ];
         
-        // Merge list with mocks, sort by points and assign correct ranks
+        // Combina as listas, ordena por XP e reconstrói as posições (ranks) corretas
         const combined = [...list, ...mockList]
           .sort((a, b) => b.points - a.points)
           .map((item, index) => ({ ...item, rank: index + 1 }));
@@ -136,7 +137,7 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Synchronizes and loads gamestate on sign-in or offline toggle
+  // Carrega e sincroniza as estatísticas do jogo ao logar ou mudar de estado offline
   useEffect(() => {
     const loadGameState = async () => {
       if (!user) {
@@ -153,7 +154,7 @@ export const GameProvider = ({ children }) => {
       setLoading(true);
       let loadedState = null;
 
-      // Try local storage cache
+      // Primeiro, tenta carregar do cache offline persistente do dispositivo
       try {
         const localStateStr = await AsyncStorage.getItem(`@duoinforma_game_${user.uid}`);
         if (localStateStr) {
@@ -163,14 +164,14 @@ export const GameProvider = ({ children }) => {
         console.error("Erro ao carregar gamestate local", e);
       }
 
-      // Try fetching cloud Firestore data
+      // Se o Firebase estiver ativo e o app online, tenta carregar dados em nuvem
       if (isFirebaseEnabled && !isOffline) {
         try {
           const docRef = doc(db, 'gamestate', user.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const firebaseState = docSnap.data();
-            // Merge states, keeping whichever has the highest score
+            // Mescla estados priorizando aquele com maior pontuação cadastrada
             if (!loadedState || firebaseState.points >= loadedState.points) {
               loadedState = firebaseState;
             }
@@ -180,7 +181,7 @@ export const GameProvider = ({ children }) => {
         }
       }
 
-      // Populate local variables
+      // Alimenta as variáveis reativas com os dados consolidados carregados
       if (loadedState) {
         setPoints(loadedState.points || 0);
         setStreak(loadedState.streak || 1);
@@ -192,7 +193,7 @@ export const GameProvider = ({ children }) => {
         setAge(loadedState.age || null);
         setLocation(loadedState.location || null);
       } else {
-        // Fallback default variables
+        // Inicializa com as configurações padrões de recruta
         setPoints(0);
         setStreak(1);
         setCompletedTrainings([]);
@@ -205,14 +206,14 @@ export const GameProvider = ({ children }) => {
       }
       setLoading(false);
       
-      // Pull leaderboard rankings
+      // Busca atualizada do ranking geral de líderes
       fetchLeaderboard();
     };
 
     loadGameState();
   }, [user, isOffline]);
 
-  // Synchronizes leaderboard displayName when agent profile gets edited
+  // Atualiza o apelido do agente no ranking quando houver edição cadastral
   useEffect(() => {
     const syncDisplayName = async () => {
       if (user && isFirebaseEnabled && !isOffline) {
@@ -232,8 +233,8 @@ export const GameProvider = ({ children }) => {
   }, [user?.displayName, isOffline]);
 
   /**
-   * Unified persistence routine.
-   * Saves updated points, achievements, and statistics to local storage and Firestore.
+   * Rotina unificada de persistência.
+   * Salva os pontos atualizados, conquistas e demais métricas no AsyncStorage e Firestore.
    */
   const syncGameState = async (newPoints, newCompleted, newAchievements, newHistory, newUnlockedLevel = unlockedExamLevel, newScores = examScores) => {
     if (!user) return;
@@ -257,14 +258,14 @@ export const GameProvider = ({ children }) => {
       updatedAt: new Date().toISOString()
     };
 
-    // Store in async storage
+    // Salva cópia local persistente
     try {
       await AsyncStorage.setItem(`@duoinforma_game_${user.uid}`, JSON.stringify(stateToSave));
     } catch (e) {
       console.error("Erro ao salvar gamestate local:", e);
     }
 
-    // Push to cloud database
+    // Envia dados consolidados para o Firestore na nuvem
     if (isFirebaseEnabled && !isOffline) {
       try {
         await setDoc(doc(db, 'gamestate', user.uid), stateToSave, { merge: true });
@@ -273,12 +274,12 @@ export const GameProvider = ({ children }) => {
       }
     }
 
-    // Refresh leaderboards
+    // Recarrega lista de líderes atualizada
     fetchLeaderboard();
   };
 
   /**
-   * Updates user demographic metadata (Age and Location) in local profile and database.
+   * Grava os metadados cadastrais do usuário (idade e localidade)
    */
   const updateUserMetadata = async (newAge, newLocation) => {
     if (!user) return;
@@ -321,7 +322,7 @@ export const GameProvider = ({ children }) => {
   };
 
   /**
-   * Calculates numerical percentage fill until user reaches the next rank milestone.
+   * Calcula o preenchimento proporcional (porcentagem) até a próxima promoção de nível
    */
   const getNextLevelProgress = () => {
     let currentIdx = 0;
@@ -352,13 +353,13 @@ export const GameProvider = ({ children }) => {
   };
 
   /**
-   * General-purpose points addition function.
+   * Adiciona pontos na pontuação global do agente
    */
   const addPoints = async (amount) => {
     const newPoints = points + amount;
     setPoints(newPoints);
     
-    // Check rank progression achievement triggers
+    // Verifica gatilhos de promoção de nível para liberar medalha correspondente
     let updatedAchievements = [...achievements];
     const prevLevel = LEVELS.find(l => points >= l.minPoints);
     const nextLevel = LEVELS.find(l => newPoints >= l.minPoints);
@@ -372,7 +373,7 @@ export const GameProvider = ({ children }) => {
   };
 
   /**
-   * Completes a training factcheck post analysis.
+   * Registra a conclusão da análise de uma postagem do simulador de Treinamento
    */
   const completeTraining = async (id, isCorrect, pointsEarned) => {
     if (completedTrainings.includes(id)) return;
@@ -388,16 +389,16 @@ export const GameProvider = ({ children }) => {
 
     const updatedAchievements = [...achievements];
     
-    // Check first training completion
+    // Libera conquista do primeiro treinamento concluído
     if (newCompleted.length === 1 && !achievements.includes('first_training')) {
       updatedAchievements.push('first_training');
-      finalPoints += 30; // bonus points
+      finalPoints += 30; // Pontos bônus
     }
 
-    // Check perfect sequence of 3 analyses
+    // Libera conquista se acertar sequência de 3 análises
     if (newCompleted.length >= 3 && isCorrect && !achievements.includes('perfect_3')) {
       updatedAchievements.push('perfect_3');
-      finalPoints += 50; // bonus points
+      finalPoints += 50; // Pontos bônus
     }
 
     setAchievements(updatedAchievements);
@@ -405,27 +406,27 @@ export const GameProvider = ({ children }) => {
   };
 
   /**
-   * Appends dynamic web scan / verified text to user's dashboard history lists.
+   * Salva a varredura efetuada pelo scanner de links/textos no histórico visível do agente
    */
   const addScanHistory = async (content, result, type) => {
     const newHistoryItem = {
       id: Math.random().toString(36).substr(2, 9),
       content,
       result,
-      type, // 'link', 'text', 'image'
+      type, // 'link', 'text' ou 'image'
       timestamp: new Date().toLocaleDateString('pt-BR')
     };
 
     const newHistory = [newHistoryItem, ...scannerHistory].slice(0, 10);
     setScannerHistory(newHistory);
 
-    let finalPoints = points + 15; // 15 points awarded per scan validation
+    let finalPoints = points + 15; // 15 XP concedidos por varredura
     setPoints(finalPoints);
 
     const updatedAchievements = [...achievements];
     if (newHistory.length >= 5 && !achievements.includes('scanner_master')) {
       updatedAchievements.push('scanner_master');
-      finalPoints += 60; // bonus points
+      finalPoints += 60; // Pontos bônus
       setPoints(finalPoints);
     }
 
@@ -433,13 +434,13 @@ export const GameProvider = ({ children }) => {
   };
 
   /**
-   * Completes Exam levels and handles progression locks.
-   * Requires scoring >= 70% to trigger higher difficulty tiers (Médio -> Difícil).
+   * Registra e valida os resultados obtidos em exames de certificações acadêmicas.
+   * Exige o mínimo de 70% de taxa de acerto para promover o usuário ao próximo nível de dificuldade.
    */
   const completeExamLevel = async (level, score) => {
     const totalQuestions = level === 'facil' ? 15 : level === 'medio' ? 20 : 15;
     const percentage = score / totalQuestions;
-    const passed = percentage >= 0.7; // 70% passing threshold
+    const passed = percentage >= 0.7; // Regra de aprovação: 70% de acertos
     
     let nextUnlockedLevel = unlockedExamLevel;
     let finalPoints = points;
@@ -531,7 +532,6 @@ export const GameProvider = ({ children }) => {
   );
 };
 
-// Hook shortcut for consuming GameContext variables inside views
+// Hook simplificado para consumo direto do GameContext nos componentes de tela
 export const useGame = () => useContext(GameContext);
 export default GameContext;
-

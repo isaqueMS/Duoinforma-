@@ -1,40 +1,40 @@
-// Import core React hooks
+// Importação de hooks essenciais do React
 import React, { useEffect, useRef } from 'react';
 
-// Import essential layout, positioning, image, and animation APIs from React Native
+// Importação de componentes e APIs de layout, dimensões e animações do React Native
 import { StyleSheet, View, Text, Animated, Dimensions, Image } from 'react-native';
 
-// Import LinearGradient from Expo to construct cyberpunk backdrop gradient washes
+// Importação do componente de gradiente linear do Expo
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Import our design system style configurations
+// Importação dos tokens do sistema de design (cores, espaçamentos)
 import { theme } from '../styles/theme';
 
-// Import our custom neon action button component
+// Importação do componente customizado de botão neon
 import NeonButton from '../components/NeonButton';
 
-// Get structural screen layout dimensions
+// Obtém as dimensões de largura e altura da tela física do dispositivo
 const { width } = Dimensions.get('window');
 
-// Load corporate branding logo resource
+// Carrega o recurso de imagem estática da logomarca oficial do sistema
 const LOGO = require('../../assets/logo.png');
 
 /**
- * SplashScreen component.
- * Renders the introductory animated welcome landing page.
- * Features a laser sweep scan animation across a floating scaled logo.
+ * Componente SplashScreen (Tela de Boas-vindas).
+ * Renderiza uma página de abertura animada com temática ciberpunk e efeitos visuais premium.
+ * Apresenta uma varredura a laser vermelha/azul sobre o logotipo central em escala.
  * 
- * @param {object} navigation - React Navigation routing prop
+ * @param {object} navigation - Objeto de roteamento do React Navigation
  */
 export default function SplashScreen({ navigation }) {
-  // Animation state coordinates
+  // Inicialização das referências das animações reativas
   const scanAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.3)).current;
 
-  // React hook to handle initial scaling spring, fade in, and repeating laser loops
+  // Efeito executado na montagem da tela para iniciar a coreografia de animações
   useEffect(() => {
-    // Start initial entrance transitions simultaneously
+    // Executa em paralelo o esvanecimento (fade-in) e a escala suave (spring) do logotipo
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -49,7 +49,7 @@ export default function SplashScreen({ navigation }) {
       })
     ]).start();
 
-    // Loop laser sweeping continuously
+    // Loop contínuo da varredura vertical da linha de laser brilhante
     Animated.loop(
       Animated.sequence([
         Animated.timing(scanAnim, {
@@ -66,12 +66,12 @@ export default function SplashScreen({ navigation }) {
     ).start();
   }, []);
 
-  // Triggers stack navigation redirecting onto Auth Login screen
+  // Navega o fluxo de entrada para a tela de autenticação (Login)
   const handleStart = () => {
     navigation.navigate('Login');
   };
 
-  // Interpolate laser line translation position bounds [0 to 100px]
+  // Mapeamento dos valores da animação para translação vertical da linha laser (0 a 100px)
   const laserY = scanAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 100]
@@ -82,7 +82,7 @@ export default function SplashScreen({ navigation }) {
       colors={[theme.colors.background, '#0A122E', '#060814']}
       style={styles.container}
     >
-      {/* Cyber Grid Background lines creating high-tech visual feel */}
+      {/* Grade de linhas cibernéticas sobreposta para visual de ficção científica */}
       <View style={styles.gridOverlay} pointerEvents="none">
         <View style={styles.gridLineH} />
         <View style={styles.gridLineH} />
@@ -93,12 +93,12 @@ export default function SplashScreen({ navigation }) {
       </View>
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        {/* Logo container with vertical laser scan effect */}
+        {/* Contêiner do logotipo central contendo o efeito de scanner a laser */}
         <View style={styles.logoContainer}>
           <Animated.View style={[styles.logoHex, { transform: [{ scale: logoScale }] }]}>
             <Image source={LOGO} style={styles.logoImage} resizeMode="contain" />
             
-            {/* Holographic Laser line sweeping across logo boundaries */}
+            {/* Efeito holográfico de laser brilhante de varredura vertical */}
             <Animated.View style={[
               styles.laser, 
               { transform: [{ translateY: laserY }] }
@@ -106,18 +106,18 @@ export default function SplashScreen({ navigation }) {
           </Animated.View>
         </View>
 
-        {/* Title logo and current application version details */}
+        {/* Título textual com destaque neon estilizado */}
         <Text style={styles.logoText}>DUO<Text style={{ color: theme.colors.primary }}>INFORMA</Text></Text>
         <Text style={styles.version}>VER 2.0.0 // HOLOGRAPHIC SYSTEMS</Text>
         
-        {/* Slogan highlight card */}
+        {/* Caixa de slogan inspirador com borda colorida */}
         <View style={styles.taglineBox}>
           <Text style={styles.taglineText}>
             "A verdade não é dada. Ela é verificada. Desenvolva seu escudo contra a desinformação digital."
           </Text>
         </View>
 
-        {/* Action Button to boot the primary login dashboard */}
+        {/* Botão de ação neon para navegar à autenticação */}
         <View style={styles.buttonWrapper}>
           <NeonButton 
             title="INICIAR SISTEMA" 
@@ -127,7 +127,7 @@ export default function SplashScreen({ navigation }) {
         </View>
       </Animated.View>
 
-      {/* Cyberpunk styled security system signatures at the bottom */}
+      {/* Assinatura do rodapé decorativo cibernético */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>DUOINFORMA DECRYPTOR v2.0.0</Text>
         <Text style={styles.footerSec}>CONEXÃO ENCRIPTADA E SEGURA</Text>
@@ -136,7 +136,7 @@ export default function SplashScreen({ navigation }) {
   );
 }
 
-// Styles definition for splash layout, positioning grids, and neon elements
+// Folha de estilos para posicionamento da grade cibernética, caixa do logotipo e neon
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -266,4 +266,3 @@ const styles = StyleSheet.create({
     marginTop: 4,
   }
 });
-

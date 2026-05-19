@@ -1,44 +1,44 @@
-// Import React core hooks
+// Importação de hooks essenciais do React
 import React, { useState, useRef } from 'react';
 
-// Import essential layout components, text elements, touch boundaries, scroll views, and activity indicators
+// Importação de componentes, interações e animações do React Native
 import {
   StyleSheet, View, Text, TextInput, TouchableOpacity,
   Animated, Dimensions, Image, KeyboardAvoidingView, Platform,
   ScrollView, ActivityIndicator, Alert
 } from 'react-native';
 
-// Import LinearGradient from Expo package
+// Importação do componente de gradiente linear do Expo
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Import our design system style configurations
+// Importação dos tokens do sistema de design (cores, tipografia)
 import { theme } from '../styles/theme';
 
-// Import our Authentication context hooks
+// Importação do hook de autenticação customizado
 import { useAuth } from '../context/AuthContext';
 
-// Get layout dimensions of user device window
+// Obtém as dimensões de largura e altura da tela física do dispositivo
 const { width, height } = Dimensions.get('window');
 
-// Load corporate branding logo resource
+// Carrega o recurso de imagem estática da logomarca oficial do sistema
 const LOGO = require('../../assets/logo.png');
 
 /**
- * LoginScreen component.
- * Primary authentication portal supporting federated Google Auth with simulated fallbacks
- * designed specifically for local emulators or offline environments.
+ * Componente LoginScreen (Tela de Acesso / Portal do Agente).
+ * Fornece a interface primária de entrada ao aplicativo, suportando autenticação integrada do Google
+ * com tratamento e fallbacks elegantes para emuladores e modos de desenvolvimento local.
  * 
- * @param {object} navigation - React Navigation routing prop
+ * @param {object} navigation - Objeto de roteamento do React Navigation
  */
 export default function LoginScreen({ navigation }) {
-  // Extract authentication actions and state from unified context provider
+  // Extrai as funções e mensagens de erro do provedor de autenticação global
   const { 
     loginWithGoogle, 
     loginWithGoogleSimulated, 
     authError 
   } = useAuth();
 
-  // Component state definitions
+  // Estados locais para controle de modais, formulários e indicadores de carregamento
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState('');
   const [showGoogleModal, setShowGoogleModal] = useState(false);
@@ -47,11 +47,11 @@ export default function LoginScreen({ navigation }) {
   const [googlePassword, setGooglePassword] = useState('');
   const [googleModalError, setGoogleModalError] = useState('');
 
-  // Floating animations for card sliding entrance effects
+  // Referências para animações de entrada por esvanecimento e translação vertical
   const formOpacity = useRef(new Animated.Value(0)).current;
   const formTranslateY = useRef(new Animated.Value(30)).current;
 
-  // React hook to trigger the cards entrance animations once component mounts
+  // Dispara animações de entrada suaves assim que a tela é montada
   React.useEffect(() => {
     Animated.parallel([
       Animated.timing(formOpacity, { toValue: 1, duration: 700, useNativeDriver: true }),
@@ -60,9 +60,10 @@ export default function LoginScreen({ navigation }) {
   }, []);
 
   /**
-   * Triggers real Google Sign-In sequence.
-   * If on a simulator where Google API packages are unavailable,
-   * catches the specific error to display simulated user interface dialog instead.
+   * Gerencia o clique do botão de autenticação do Google.
+   * Tenta iniciar o fluxo nativo padrão. Em ambientes de emulador onde as chaves SHAs
+   * ou os pacotes nativos do Google Play Services não estão configurados, captura o erro
+   * e redireciona automaticamente para a interface simulada de login seguro.
    */
   const handleGoogle = async () => {
     setLocalError('');
@@ -70,7 +71,7 @@ export default function LoginScreen({ navigation }) {
     try {
       await loginWithGoogle();
     } catch (e) {
-      // Catch native Google module absence and direct onto simulation flow
+      // Trata a exceção específica redirecionando para a janela de simulação dev
       if (e.message === 'SIMULATED_GOOGLE_FLOW') {
         setShowGoogleModal(true);
       } else {
@@ -82,9 +83,9 @@ export default function LoginScreen({ navigation }) {
   };
 
   /**
-   * Submits simulated Google account information to create a mock Firebase profile.
-   * Matches e-mail formats and handles standard email-already-in-use exceptions
-   * by requesting account password verification if user previously registered.
+   * Envia os dados informados na janela simulada de login do Google.
+   * Cria uma credencial real de e-mail e senha no Firebase para garantir
+   * o correto funcionamento de persistência do Firestore e painel do usuário.
    */
   const handleGoogleSimulatedSubmit = async () => {
     setGoogleModalError('');
@@ -105,20 +106,20 @@ export default function LoginScreen({ navigation }) {
     setSubmitting(true);
     try {
       if (showGooglePasswordInput) {
-        // Authenticate standard Firebase account using Google credentials
+        // Tenta autenticar o usuário que já possui registro ativo
         await loginWithGoogleSimulated(googleEmail.trim(), googlePassword);
         setShowGoogleModal(false);
         setShowGooglePasswordInput(false);
         setGooglePassword('');
       } else {
-        // Create new account simulated under Google identifier
+        // Tenta criar ou logar a conta simulada inicial
         await loginWithGoogleSimulated(googleEmail.trim());
         setShowGoogleModal(false);
         setShowGooglePasswordInput(false);
         setGooglePassword('');
       }
     } catch (e) {
-      // Intercept existing credentials error and request standard password entry
+      // Intercepta e-mails cadastrados previamente no Firebase para solicitar verificação de senha
       if (
         e.message?.includes('cadastrado') || 
         e.message?.includes('senha') || 
@@ -136,7 +137,7 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  // Resolve consolidated error text
+  // Consolida as mensagens de erro nativas e locais
   const errorMessage = localError || authError;
 
   return (
@@ -144,7 +145,7 @@ export default function LoginScreen({ navigation }) {
       colors={['#070A13', '#0A122E', '#060814']}
       style={styles.container}
     >
-      {/* Background grid lines for immersive cyber aesthetic */}
+      {/* Grade de linhas em background para a atmosfera ciberpunk */}
       <View style={styles.gridOverlay} pointerEvents="none">
         {[...Array(6)].map((_, i) => (
           <View key={`h${i}`} style={[styles.gridLineH, { top: `${15 + i * 15}%` }]} />
@@ -163,7 +164,7 @@ export default function LoginScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Neon Logo & Branding header */}
+          {/* Cabeçalho principal com a logomarca iluminada por neon */}
           <Animated.View style={[styles.logoSection, { opacity: formOpacity, transform: [{ translateY: formTranslateY }] }]}>
             <View style={styles.logoGlow}>
               <Image source={LOGO} style={styles.logoImage} resizeMode="contain" />
@@ -174,26 +175,26 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.appTagline}>SISTEMA DE DEFESA COGNITIVA</Text>
           </Animated.View>
 
-          {/* Centralized Credentials Authorization Card */}
+          {/* Cartão translúcido central de autenticação */}
           <Animated.View style={[styles.authCard, { opacity: formOpacity, transform: [{ translateY: formTranslateY }] }]}>
             <Text style={styles.connectionTitle}>PORTAL DE ACESSO</Text>
             <Text style={styles.connectionSubtitle}>IDENTIFICAÇÃO DE AGENTE AUTORIZADO</Text>
 
-            {/* Custom geometric separator divider */}
+            {/* Separador estilizado geométrico ciberpunk */}
             <View style={styles.cyberDividerContainer}>
               <View style={styles.cyberLine} />
               <View style={styles.cyberDiamond} />
               <View style={styles.cyberLine} />
             </View>
 
-            {/* Session Error alert */}
+            {/* Exibe aviso flutuante de erro se houver falhas no login */}
             {!!errorMessage && (
               <View style={styles.errorBox}>
                 <Text style={styles.errorText}>⚠️ {errorMessage}</Text>
               </View>
             )}
 
-            {/* Action Google Trigger button */}
+            {/* Botão de login com Google com efeito de feedback neon */}
             <TouchableOpacity
               onPress={handleGoogle}
               disabled={submitting}
@@ -215,12 +216,12 @@ export default function LoginScreen({ navigation }) {
             </Text>
           </Animated.View>
 
-          {/* Cyber signature branding */}
+          {/* Assinatura no rodapé da página */}
           <Text style={styles.footer}>DUOINFORMA PRODUCTION GATEWAY v3.0.0 // REDE PROTEGIDA</Text>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Simulated Google Sign-In Modal (triggers on developer emulators only) */}
+      {/* Modal simulador do Google (utilizado para testes rápidos em emulador local) */}
       {showGoogleModal && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -232,14 +233,14 @@ export default function LoginScreen({ navigation }) {
               Simulação de login seguro para o emulador/desenvolvimento
             </Text>
             
-            {/* Modal Error feedback container */}
+            {/* Mensagem de falha interna da janela modal */}
             {!!googleModalError && (
               <View style={[styles.errorBox, { width: '100%', marginBottom: 16 }]}>
                 <Text style={styles.errorText}>⚠️ {googleModalError}</Text>
               </View>
             )}
 
-            {/* Simulated Account Form Input fields */}
+            {/* Campo de e-mail fictício do Google */}
             <View style={styles.modalFieldGroup}>
               <Text style={styles.modalFieldLabel}>E-MAIL DA CONTA GOOGLE</Text>
               <View style={styles.modalInputRow}>
@@ -258,7 +259,7 @@ export default function LoginScreen({ navigation }) {
               </View>
             </View>
 
-            {/* Password input modal row (visible when syncing with an existing email) */}
+            {/* Campo de senha exibido de forma condicional se a conta já existir no Firestore/Auth */}
             {showGooglePasswordInput && (
               <View style={[styles.modalFieldGroup, { marginTop: 4 }]}>
                 <Text style={styles.modalFieldLabel}>SENHA DA CONTA DO SISTEMA</Text>
@@ -279,7 +280,7 @@ export default function LoginScreen({ navigation }) {
               </View>
             )}
 
-            {/* Modal action button row */}
+            {/* Ações de controle da janela flutuante modal */}
             <View style={styles.modalBtnRow}>
               <TouchableOpacity
                 onPress={() => {
@@ -312,7 +313,7 @@ export default function LoginScreen({ navigation }) {
   );
 }
 
-// Layout styling specifications for custom text fields and button glows
+// Folha de estilos para controle visual, posicionamento, cartões translúcidos e modal
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -613,4 +614,3 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
 });
-

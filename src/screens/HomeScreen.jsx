@@ -1,50 +1,50 @@
-// Import core React library
+// Importação do React core
 import React from 'react';
 
-// Import essential layout components, text displays, scroll controllers, touch structures, and status bar APIs
+// Importação de componentes, contêineres de scroll, interações e barreira de área segura do React Native
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 
-// Import LinearGradient from Expo package
+// Importação do componente de gradiente linear do Expo
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Import our design system style configurations
+// Importação dos tokens do sistema de design (cores, tipografia, roundness)
 import { theme } from '../styles/theme';
 
-// Import authentication status hooks
+// Importação do hook de autenticação
 import { useAuth } from '../context/AuthContext';
 
-// Import gameplay and level stats context hooks
+// Importação do hook de controle das informações de jogabilidade e XP
 import { useGame } from '../context/GameContext';
 
-// Import local customized structural elements
+// Importação dos componentes locais estruturados
 import GlassCard from '../components/GlassCard';
 import ProgressBar from '../components/ProgressBar';
 import Header from '../components/Header';
 
 /**
- * HomeScreen component.
- * Renders the primary dashboard view where authenticated agents monitor their XP progress,
- * access modules (Training, Scanner, Course Enciclopédia), and unlock Exam evaluations.
+ * Componente HomeScreen (Painel Principal do Agente).
+ * Renders o painel centralizado de controle onde o usuário visualiza seu progresso (XP),
+ * acessa as missões operacionais de verificação, treina com simulações e desbloqueia exames.
  * 
- * @param {object} navigation - React Navigation routing prop
+ * @param {object} navigation - Objeto de roteamento do React Navigation
  */
 export default function HomeScreen({ navigation }) {
-  // Extract user authentication record
+  // Extrai o registro cadastral do usuário ativo
   const { user } = useAuth();
 
-  // Extract gaming scores, streak counts, and progression functions from unified context
+  // Consome a pontuação, sequência ofensiva e nível atual do usuário de forma reativa
   const { points, streak, getCurrentLevel, getNextLevelProgress, unlockedExamLevel } = useGame();
   
-  // Resolve current level and points milestone calculations
+  // Consolida as informações de nível e barra de progresso proporcional
   const currentLevel = getCurrentLevel();
   const progressData = getNextLevelProgress();
 
-  // Helper function to trigger Tab Navigation redirects
+  // Navega para uma aba do menu inferior (Tab Navigator)
   const handleNavigate = (tabName) => {
     navigation.navigate(tabName);
   };
 
-  // Helper function to trigger Screen Stack transitions
+  // Navega para uma tela secundária específica da pilha de telas (Stack)
   const handleNavigateToScreen = (screenName) => {
     navigation.navigate(screenName);
   };
@@ -56,7 +56,7 @@ export default function HomeScreen({ navigation }) {
         colors={[theme.colors.background, '#0A0F24']}
         style={styles.container}
       >
-        {/* Neon themed dashboard header */}
+        {/* Cabeçalho neon customizado */}
         <Header 
           title="DUOINFORMA" 
           subtitle="SISTEMA DE DEFESA COGNITIVA" 
@@ -66,7 +66,7 @@ export default function HomeScreen({ navigation }) {
         
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-          {/* Level Progress Dashboard Glass Card */}
+          {/* Cartão de Progresso de Nível e Streak de Dias Ativos */}
           <GlassCard style={styles.dashboardCard} borderType="neonPrimary">
             <View style={styles.dashboardHeader}>
               <View>
@@ -78,7 +78,7 @@ export default function HomeScreen({ navigation }) {
               </View>
             </View>
 
-            {/* Linear neon progress bar detailing level thresholds */}
+            {/* Barra de progresso neon indicando a meta até o próximo nível */}
             <ProgressBar 
               progress={progressData.percentage} 
               label="PROGRESSÃO DE PONTOS" 
@@ -92,12 +92,12 @@ export default function HomeScreen({ navigation }) {
             </View>
           </GlassCard>
 
-          {/* Core Interactive Module Grid */}
+          {/* Grade de Módulos Operacionais */}
           <Text style={styles.sectionTitle}>MÓDULOS OPERACIONAIS</Text>
 
           <View style={styles.modesContainer}>
             
-            {/* Module 1: Daily Training Simulator */}
+            {/* Bloco 1: Simulador de Treinamento Diário */}
             <TouchableOpacity 
               onPress={() => handleNavigate('Treinamento')} 
               style={styles.modeCardWrapper}
@@ -116,7 +116,7 @@ export default function HomeScreen({ navigation }) {
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Module 2: Digital Laser Scanner Verification */}
+            {/* Bloco 2: Scanner Digital de Links e Textos */}
             <TouchableOpacity 
               onPress={() => handleNavigate('Verificação')} 
               style={styles.modeCardWrapper}
@@ -137,7 +137,7 @@ export default function HomeScreen({ navigation }) {
 
           </View>
 
-          {/* Module 3: Exam Simulator credentials validation */}
+          {/* Banner de Acesso ao Simulador de Exames */}
           <TouchableOpacity 
             onPress={() => handleNavigateToScreen('Exame')} 
             style={styles.examBannerWrapper}
@@ -171,7 +171,7 @@ export default function HomeScreen({ navigation }) {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Module 4: Learning Course Enciclopédia */}
+          {/* Banner de Acesso à Enciclopédia Acadêmica (Curso) */}
           <TouchableOpacity 
             onPress={() => handleNavigateToScreen('Aprendizado')} 
             style={styles.learningBannerWrapper}
@@ -196,7 +196,7 @@ export default function HomeScreen({ navigation }) {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Educational Anti-Fake News Tip Card */}
+          {/* Cartão de Dica de Segurança Factual */}
           <GlassCard style={styles.tipCard} borderType="accent">
             <View style={styles.tipHeader}>
               <Text style={styles.tipTitle}>💡 DIRETRIZ ANTI-DESINFORMAÇÃO</Text>
@@ -212,7 +212,7 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-// Styling definitions for card boundaries, grid cards, and custom banners
+// Folha de estilos contendo as métricas de layout, flexbox, cores e bordas brilhantes
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -496,4 +496,3 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   }
 });
-

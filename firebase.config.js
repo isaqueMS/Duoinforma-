@@ -3,9 +3,9 @@ import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// In Expo 54+, standard configuration can be fetched from process.env or expo-constants.
-// We will set up standard placeholder configs. If they are not valid or missing,
-// our auth/game context will fallback to safe local storage mock so that the app NEVER crashes.
+// No Expo 54+, a configuração padrão pode ser obtida a partir do process.env ou expo-constants.
+// Definiremos configurações padrão. Se forem inválidas ou estiverem ausentes,
+// nosso contexto de autenticação/jogo recorrerá a uma simulação offline segura com armazenamento local para que o app NUNCA trave.
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyBnYFMdmi7RUxC3OCqA3CO2F9I7R7MwJio",
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "biblioteca-d2087.firebaseapp.com",
@@ -20,12 +20,12 @@ let auth;
 let db;
 let isFirebaseEnabled = false;
 
-// Check if credentials look real and attempt initialization
+// Verifica se as credenciais parecem reais e tenta a inicialização
 if (firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("DummyKey")) {
   try {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     
-    // Check if we can initialize Auth with persistence
+    // Inicializa a autenticação com persistência nativa do React Native / AsyncStorage
     auth = initializeAuth(app, {
       persistence: getReactNativePersistence(AsyncStorage),
     });

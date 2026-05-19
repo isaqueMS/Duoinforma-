@@ -1,40 +1,40 @@
 /**
- * Custom design system and style tokens for the Duoinforma App.
- * Built with a high-fidelity "Cyber Defense" aesthetic, using deep space blues, dark metallic overlays,
- * and neon colors with simulated glassmorphism values.
+ * Sistema de design customizado e tokens de estilização do Duoinforma.
+ * Construído sob a estética "Cyber Defense" (Defesa Cibernética), utilizando tons profundos de azul espacial,
+ * superfícies metálicas escuras e cores neon brilhantes que simulam valores de glassmorphic.
  */
 export const theme = {
-  // Theme Color System
+  // Paleta de Cores do Tema
   colors: {
-    background: '#070A13', // Deep cyber space blue-black (primary screen background)
-    surface: '#0E1326',    // Dark metallic glass card background (cards, overlays)
+    background: '#070A13', // Azul-preto espacial profundo (fundo principal das telas)
+    surface: '#0E1326',    // Fundo metálico escuro para cartões translúcidos
 
-    surfaceSecondary: '#181F38', // Lighter container
+    surfaceSecondary: '#181F38', // Fundo de contêiner ligeiramente mais claro
     
-    primary: '#00F0FF',    // Neon Cyan / Blue
+    primary: '#00F0FF',    // Ciano Neon (utilizado em ações principais e links seguros)
     primaryGlow: 'rgba(0, 240, 255, 0.4)',
     
-    secondary: '#BD00FF',  // Neon Purple
+    secondary: '#BD00FF',  // Roxo Neon (utilizado para conquistas secundárias e exames)
     secondaryGlow: 'rgba(189, 0, 255, 0.4)',
     
-    accent: '#00FF66',     // Neon Green (for real news, success, achievements)
+    accent: '#00FF66',     // Verde Neon (para notícias verdadeiras, acertos e medalhas)
     accentGlow: 'rgba(0, 255, 102, 0.4)',
     
-    danger: '#FF0055',     // Neon Red (for fake news, warnings, errors)
+    danger: '#FF0055',     // Vermelho Neon (para fake news, perigos e erros)
     dangerGlow: 'rgba(255, 0, 85, 0.4)',
     
-    warning: '#FFB800',    // Cyber Gold/Orange (for suspect rating, warnings)
+    warning: '#FFB800',    // Ouro Cibernético / Laranja (para avisos e níveis suspeitos)
     warningGlow: 'rgba(255, 184, 0, 0.4)',
 
-    text: '#FFFFFF',       // Full white
-    textSecondary: '#8F9BB3', // Muted steel blue
-    textMuted: '#576585',  // Very dark grey-blue text
+    text: '#FFFFFF',       // Branco puro para textos principais
+    textSecondary: '#8F9BB3', // Azul metálico claro para textos de apoio
+    textMuted: '#576585',  // Azul metálico escuro para textos discretos
     
-    border: '#1F294D',     // Cybergrid border color
+    border: '#1F294D',     // Cor da borda estilo grade cibernética
     borderHighlight: '#3B4E8C',
   },
   fonts: {
-    regular: 'System', // Fallback to System to ensure standard compatibility
+    regular: 'System', // Fallback para fontes do sistema para compatibilidade multiplataforma
     medium: 'System',
     bold: 'System',
     mono: 'System',
