@@ -6,6 +6,7 @@ import { useGame } from '../context/GameContext';
 import GlassCard from '../components/GlassCard';
 import NeonButton from '../components/NeonButton';
 import ScannerAnimation from '../components/ScannerAnimation';
+import Header from '../components/Header';
 
 // ─── Heuristic Analysis Engine ─────────────────────────────────────────────────
 
@@ -148,7 +149,7 @@ function analyzeContent(input, type) {
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
-export default function VerificationScreen() {
+export default function VerificationScreen({ navigation }) {
   const { addScanHistory, scannerHistory } = useGame();
   
   const [inputType, setInputType] = useState('text');
@@ -200,13 +201,14 @@ export default function VerificationScreen() {
         colors={[theme.colors.background, '#090E20']}
         style={styles.container}
       >
+        <Header 
+          title="SCANNER DIGITAL" 
+          subtitle="MOTOR DE ANÁLISE HEURÍSTICA v2.0" 
+          navigation={navigation} 
+          showAvatar={true} 
+        />
+        
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>SCANNER DIGITAL</Text>
-            <Text style={styles.headerSubtitle}>MOTOR DE ANÁLISE HEURÍSTICA v2.0</Text>
-          </View>
 
           {/* Type Selector Tabs */}
           <View style={styles.tabContainer}>

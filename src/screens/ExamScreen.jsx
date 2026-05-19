@@ -18,6 +18,7 @@ import GlassCard from '../components/GlassCard';
 import NeonButton from '../components/NeonButton';
 import ProgressBar from '../components/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
+import Header from '../components/Header';
 
 const { width } = Dimensions.get('window');
 
@@ -163,6 +164,37 @@ export default function ExamScreen({ navigation }) {
     );
   };
 
+  const getHeaderProps = () => {
+    switch (activeStep) {
+      case 'quiz':
+        return {
+          title: `EXAME: ${selectedDifficulty ? selectedDifficulty.toUpperCase() : ''}`,
+          subtitle: `QUESTÃO ${currentQuestionIndex + 1} DE ${currentQuestions.length}`,
+          onBack: () => setActiveStep('menu')
+        };
+      case 'analyzing':
+        return {
+          title: 'ANALISANDO GABARITO',
+          subtitle: 'PROCESSANDO RESPOSTAS CRIPTOGRAFADAS...',
+          onBack: () => {} // disable back click during analysis
+        };
+      case 'report':
+        return {
+          title: 'RESULTADO DO EXAME',
+          subtitle: examResult?.passed ? 'CREDENCIAIS APROVADAS' : 'REQUISITOS NÃO ALCANÇADOS',
+          onBack: () => setActiveStep('menu')
+        };
+      default:
+        return {
+          title: 'CENTRAL DE EXAMES',
+          subtitle: 'SISTEMA DE CERTIFICAÇÃO EM SEGURANÇA',
+          navigation: navigation
+        };
+    }
+  };
+
+  const headerProps = getHeaderProps();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
@@ -170,21 +202,19 @@ export default function ExamScreen({ navigation }) {
         colors={[theme.colors.background, '#0A0F24']}
         style={styles.container}
       >
+        <Header 
+          title={headerProps.title} 
+          subtitle={headerProps.subtitle} 
+          navigation={navigation} 
+          showAvatar={true} 
+          onBack={headerProps.onBack} 
+        />
         
         {/* ========================================== */}
         {/* STEP 1: DIFFICULTY SELECTION MENU */}
         {/* ========================================== */}
         {activeStep === 'menu' && (
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            <View style={styles.header}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="chevron-back" size={24} color={theme.colors.primary} />
-                <Text style={styles.backBtnText}>VOLTAR</Text>
-              </TouchableOpacity>
-              
-              <Text style={styles.headerTitle}>CENTRAL DE EXAMES</Text>
-              <Text style={styles.headerSubtitle}>SISTEMA DE CERTIFICAÇÃO EM SEGURANÇA</Text>
-            </View>
 
             <GlassCard style={styles.infoBanner} borderType="neonPrimary">
               <Text style={styles.infoBannerTitle}>💡 INSTRUCÕES DE EXAME</Text>

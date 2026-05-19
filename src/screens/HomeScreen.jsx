@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView, StatusBar, Image } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import GlassCard from '../components/GlassCard';
 import ProgressBar from '../components/ProgressBar';
+import Header from '../components/Header';
 
 export default function HomeScreen({ navigation }) {
   const { user } = useAuth();
@@ -29,27 +30,14 @@ export default function HomeScreen({ navigation }) {
         colors={[theme.colors.background, '#0A0F24']}
         style={styles.container}
       >
+        <Header 
+          title="DUOINFORMA" 
+          subtitle="SISTEMA DE DEFESA COGNITIVA" 
+          navigation={navigation} 
+          showAvatar={true} 
+        />
+        
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
-          {/* Cyber Header */}
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.headerTitle}>DUO<Text style={{ color: theme.colors.primary }}>INFORMA</Text></Text>
-              <Text style={styles.headerSubtitle}>SISTEMA DE DEFESA COGNITIVA</Text>
-            </View>
-            <TouchableOpacity 
-              onPress={() => handleNavigate('Perfil')}
-              style={styles.avatarButton}
-            >
-              <View style={styles.avatarBorder}>
-                {user?.photoURL ? (
-                  <Image source={{ uri: user.photoURL }} style={styles.avatarImage} />
-                ) : (
-                  <Text style={styles.avatarEmoji}>{currentLevel.badge}</Text>
-                )}
-              </View>
-            </TouchableOpacity>
-          </View>
 
           {/* Level Progress Dashboard */}
           <GlassCard style={styles.dashboardCard} borderType="neonPrimary">

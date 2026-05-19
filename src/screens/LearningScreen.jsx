@@ -5,6 +5,7 @@ import { theme } from '../styles/theme';
 import { useGame } from '../context/GameContext';
 import GlassCard from '../components/GlassCard';
 import NeonButton from '../components/NeonButton';
+import Header from '../components/Header';
 
 const LESSONS = [
   {
@@ -95,13 +96,15 @@ export default function LearningScreen({ navigation }) {
         colors={[theme.colors.background, '#0A0E1D']}
         style={styles.container}
       >
+        <Header 
+          title={activeLesson ? activeLesson.title : "ENCICLOPÉDIA"} 
+          subtitle={activeLesson ? activeLesson.category : "TÁTICAS DE DEFESA COGNITIVA"} 
+          navigation={navigation} 
+          showAvatar={true} 
+          onBack={activeLesson ? () => setActiveLesson(null) : undefined}
+        />
+        
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>ENCICLOPÉDIA</Text>
-            <Text style={styles.headerSubtitle}>TÁTICAS DE DEFESA COGNITIVA</Text>
-          </View>
 
           {!activeLesson ? (
             <View style={{ width: '100%' }}>

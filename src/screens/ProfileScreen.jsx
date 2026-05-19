@@ -7,8 +7,9 @@ import { useGame } from '../context/GameContext';
 import GlassCard from '../components/GlassCard';
 import StatCard from '../components/StatCard';
 import BadgeCard from '../components/BadgeCard';
+import Header from '../components/Header';
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
   const { user, logoutUser, updateDisplayName } = useAuth();
   const { 
     points, 
@@ -72,13 +73,14 @@ export default function ProfileScreen() {
         colors={[theme.colors.background, '#0A0E22']}
         style={styles.container}
       >
+        <Header 
+          title="PERFIL DO AGENTE" 
+          subtitle="SISTEMA DE CREDENCIAIS" 
+          navigation={navigation} 
+          showAvatar={false} 
+        />
+        
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>PERFIL DO AGENTE</Text>
-            <Text style={styles.headerSubtitle}>SISTEMA DE CREDENCIAIS</Text>
-          </View>
 
           {/* User Basic Info Card */}
           <GlassCard style={styles.userCard} borderType="neonPrimary">

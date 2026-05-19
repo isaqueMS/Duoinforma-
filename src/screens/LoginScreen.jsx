@@ -9,23 +9,15 @@ import { theme } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
 
 const { width, height } = Dimensions.get('window');
-const LOGO = require('../../assets/icon.png');
+const LOGO = require('../../assets/logo.png');
 
 export default function LoginScreen({ navigation }) {
   const { 
-    loginWithEmail, 
-    registerWithEmail, 
-    loginAnonymously, 
     loginWithGoogle, 
     loginWithGoogleSimulated, 
     authError 
   } = useAuth();
 
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState('');
   const [showGoogleModal, setShowGoogleModal] = useState(false);
@@ -44,56 +36,6 @@ export default function LoginScreen({ navigation }) {
       Animated.timing(formTranslateY, { toValue: 0, duration: 700, useNativeDriver: true }),
     ]).start();
   }, []);
-
-  const switchMode = (newMode) => {
-    setLocalError('');
-    setName('');
-    setEmail('');
-    setPassword('');
-    // Quick fade for mode switch
-    Animated.sequence([
-      Animated.timing(formOpacity, { toValue: 0.4, duration: 150, useNativeDriver: true }),
-      Animated.timing(formOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-    ]).start();
-    setMode(newMode);
-  };
-
-  const validate = () => {
-    if (!email.trim()) { setLocalError('Por favor, informe seu e-mail.'); return false; }
-    if (!/\S+@\S+\.\S+/.test(email)) { setLocalError('Formato de e-mail inválido.'); return false; }
-    if (!password || password.length < 6) { setLocalError('A senha deve ter no mínimo 6 caracteres.'); return false; }
-    if (mode === 'register' && !name.trim()) { setLocalError('Informe um codinome de agente.'); return false; }
-    return true;
-  };
-
-  const handleSubmit = async () => {
-    setLocalError('');
-    if (!validate()) return;
-    setSubmitting(true);
-    try {
-      if (mode === 'login') {
-        await loginWithEmail(email.trim(), password);
-      } else {
-        await registerWithEmail(name.trim(), email.trim(), password);
-      }
-      // Navigation handled by AppNavigator (auth state change)
-    } catch (e) {
-      setLocalError(e.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleGuest = async () => {
-    setSubmitting(true);
-    try {
-      await loginAnonymously();
-    } catch (e) {
-      setLocalError('Falha ao entrar como convidado.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const handleGoogle = async () => {
     setLocalError('');
@@ -141,7 +83,6 @@ export default function LoginScreen({ navigation }) {
         setGooglePassword('');
       }
     } catch (e) {
-      // If error indicates wrong password or account already exists with password
       if (
         e.message?.includes('cadastrado') || 
         e.message?.includes('senha') || 
@@ -198,85 +139,13 @@ export default function LoginScreen({ navigation }) {
 
           {/* Auth Card */}
           <Animated.View style={[styles.authCard, { opacity: formOpacity, transform: [{ translateY: formTranslateY }] }]}>
-            {/* Tab Switcher */}
-            <View style={styles.tabRow}>
-              <TouchableOpacity
-                onPress={() => switchMode('login')}
-                style={[styles.tabBtn, mode === 'login' && styles.tabBtnActive]}
-              >
-                <Text style={[styles.tabBtnText, mode === 'login' && styles.tabBtnTextActive]}>
-                  ENTRAR
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => switchMode('register')}
-                style={[styles.tabBtn, mode === 'register' && styles.tabBtnActive]}
-              >
-                <Text style={[styles.tabBtnText, mode === 'register' && styles.tabBtnTextActive]}>
-                  CADASTRAR
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.connectionTitle}>PORTAL DE ACESSO</Text>
+            <Text style={styles.connectionSubtitle}>IDENTIFICAÇÃO DE AGENTE AUTORIZADO</Text>
 
-            <View style={styles.divider} />
-
-            {/* Name field (register only) */}
-            {mode === 'register' && (
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>CODINOME DO AGENTE</Text>
-                <View style={styles.inputRow}>
-                  <Text style={styles.inputIcon}>🕵️</Text>
-                  <TextInput
-                    value={name}
-                    onChangeText={setName}
-                    placeholder="Ex: Agente_Alpha_77"
-                    placeholderTextColor={theme.colors.textMuted}
-                    style={styles.textInput}
-                    autoCapitalize="words"
-                    editable={!submitting}
-                  />
-                </View>
-              </View>
-            )}
-
-            {/* Email */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>E-MAIL</Text>
-              <View style={styles.inputRow}>
-                <Text style={styles.inputIcon}>📡</Text>
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="agente@duoinforma.com"
-                  placeholderTextColor={theme.colors.textMuted}
-                  style={styles.textInput}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!submitting}
-                />
-              </View>
-            </View>
-
-            {/* Password */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>SENHA DE ACESSO</Text>
-              <View style={styles.inputRow}>
-                <Text style={styles.inputIcon}>🔐</Text>
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="••••••••"
-                  placeholderTextColor={theme.colors.textMuted}
-                  style={[styles.textInput, { flex: 1 }]}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  editable={!submitting}
-                />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-                  <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
-                </TouchableOpacity>
-              </View>
+            <View style={styles.cyberDividerContainer}>
+              <View style={styles.cyberLine} />
+              <View style={styles.cyberDiamond} />
+              <View style={styles.cyberLine} />
             </View>
 
             {/* Error message */}
@@ -286,60 +155,30 @@ export default function LoginScreen({ navigation }) {
               </View>
             )}
 
-            {/* Main CTA */}
-            <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={submitting}
-              style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
-              activeOpacity={0.85}
-            >
-              <LinearGradient
-                colors={['rgba(0,240,255,0.15)', 'rgba(0,240,255,0.05)']}
-                style={styles.primaryBtnGrad}
-              >
-                {submitting ? (
-                  <ActivityIndicator color={theme.colors.primary} />
-                ) : (
-                  <Text style={styles.primaryBtnText}>
-                    {mode === 'login' ? 'INICIAR SESSÃO' : 'CRIAR CONTA'}
-                  </Text>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
-
             {/* Google Sign In */}
             <TouchableOpacity
               onPress={handleGoogle}
               disabled={submitting}
-              style={[styles.googleBtn, submitting && styles.primaryBtnDisabled]}
+              style={[styles.googleBtn, submitting && styles.googleBtnDisabled]}
               activeOpacity={0.8}
             >
-              <View style={styles.googleContent}>
-                <Text style={styles.googleIconText}>🌐</Text>
-                <Text style={styles.googleBtnText}>ENTRAR COM GOOGLE</Text>
-              </View>
+              {submitting ? (
+                <ActivityIndicator color={theme.colors.primary} />
+              ) : (
+                <View style={styles.googleContent}>
+                  <Text style={styles.googleIconText}>🌐</Text>
+                  <Text style={styles.googleBtnText}>CONECTAR COM GOOGLE</Text>
+                </View>
+              )}
             </TouchableOpacity>
 
-            {/* Divider */}
-            <View style={styles.orRow}>
-              <View style={styles.orLine} />
-              <Text style={styles.orText}>ou</Text>
-              <View style={styles.orLine} />
-            </View>
-
-            {/* Guest access */}
-            <TouchableOpacity
-              onPress={handleGuest}
-              disabled={submitting}
-              style={styles.guestBtn}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.guestBtnText}>⚡ ACESSO RÁPIDO (CONVIDADO)</Text>
-            </TouchableOpacity>
+            <Text style={styles.securityHint}>
+              * Conexão segura e autenticada diretamente via servidores federados do Google. Seus dados estão sob criptografia de nível militar.
+            </Text>
           </Animated.View>
 
           {/* Footer */}
-          <Text style={styles.footer}>DUOINFORMA DECRYPTOR v2.0.0 // CONEXÃO CRIPTOGRAFADA</Text>
+          <Text style={styles.footer}>DUOINFORMA PRODUCTION GATEWAY v3.0.0 // REDE PROTEGIDA</Text>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -513,72 +352,42 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 20,
     elevation: 10,
-  },
-  tabRow: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: 10,
-    padding: 4,
-    marginBottom: 20,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: 8,
   },
-  tabBtnActive: {
-    backgroundColor: theme.colors.primary,
+  connectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: 2,
+    marginBottom: 4,
+    textAlign: 'center',
   },
-  tabBtnText: {
-    color: theme.colors.textSecondary,
-    fontWeight: 'bold',
-    fontSize: 12,
-    letterSpacing: 1.5,
-  },
-  tabBtnTextActive: {
-    color: '#000000',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    marginBottom: 20,
-  },
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
+  connectionSubtitle: {
     color: theme.colors.primary,
     fontSize: 9,
     fontWeight: 'bold',
-    letterSpacing: 2,
-    marginBottom: 8,
+    letterSpacing: 1.5,
+    marginBottom: 16,
+    textAlign: 'center',
   },
-  inputRow: {
+  cyberDividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,240,255,0.15)',
-    paddingHorizontal: 14,
-    height: 50,
+    justifyContent: 'center',
+    width: '80%',
+    marginVertical: 12,
   },
-  inputIcon: {
-    fontSize: 16,
-    marginRight: 10,
-  },
-  textInput: {
+  cyberLine: {
     flex: 1,
-    color: '#FFFFFF',
-    fontSize: 14,
-    height: 50,
+    height: 1,
+    backgroundColor: 'rgba(0,240,255,0.25)',
   },
-  eyeBtn: {
-    padding: 6,
-  },
-  eyeIcon: {
-    fontSize: 18,
+  cyberDiamond: {
+    width: 6,
+    height: 6,
+    backgroundColor: theme.colors.primary,
+    transform: [{ rotate: '45deg' }],
+    marginHorizontal: 10,
   },
   errorBox: {
     backgroundColor: 'rgba(255,0,85,0.08)',
@@ -587,83 +396,32 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     marginBottom: 16,
+    width: '100%',
   },
   errorText: {
     color: theme.colors.danger,
     fontSize: 12,
     lineHeight: 18,
   },
-  primaryBtn: {
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: theme.colors.primary,
-    overflow: 'hidden',
-    marginTop: 4,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  primaryBtnDisabled: {
-    opacity: 0.6,
-  },
-  primaryBtnGrad: {
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  primaryBtnText: {
-    color: theme.colors.primary,
-    fontWeight: '900',
-    fontSize: 14,
-    letterSpacing: 2,
-  },
-  orRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  orLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-  },
-  orText: {
-    color: theme.colors.textMuted,
-    fontSize: 12,
-    marginHorizontal: 12,
-  },
-  guestBtn: {
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(189,0,255,0.3)',
-    backgroundColor: 'rgba(189,0,255,0.04)',
-    alignItems: 'center',
-  },
-  guestBtnText: {
-    color: theme.colors.secondary,
-    fontWeight: 'bold',
-    fontSize: 13,
-    letterSpacing: 1,
-  },
-  footer: {
-    color: theme.colors.textMuted,
-    fontSize: 9,
-    letterSpacing: 1.5,
-    marginTop: 32,
-    textAlign: 'center',
-  },
   googleBtn: {
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.15)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: theme.colors.primary,
+    backgroundColor: 'rgba(0,240,255,0.04)',
     overflow: 'hidden',
-    marginTop: 12,
-    height: 50,
+    marginTop: 16,
+    height: 52,
+    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  googleBtnDisabled: {
+    opacity: 0.6,
   },
   googleContent: {
     flexDirection: 'row',
@@ -675,10 +433,25 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   googleBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: theme.colors.primary,
+    fontWeight: '900',
     fontSize: 13,
+    letterSpacing: 2,
+  },
+  securityHint: {
+    color: theme.colors.textMuted,
+    fontSize: 9,
+    lineHeight: 14,
+    textAlign: 'center',
+    marginTop: 24,
+    paddingHorizontal: 8,
+  },
+  footer: {
+    color: theme.colors.textMuted,
+    fontSize: 9,
     letterSpacing: 1.5,
+    marginTop: 32,
+    textAlign: 'center',
   },
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,

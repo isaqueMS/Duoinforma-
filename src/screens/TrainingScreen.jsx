@@ -7,8 +7,9 @@ import { trainingData } from '../data/trainingData';
 import GlassCard from '../components/GlassCard';
 import NeonButton from '../components/NeonButton';
 import ProgressBar from '../components/ProgressBar';
+import Header from '../components/Header';
 
-export default function TrainingScreen() {
+export default function TrainingScreen({ navigation }) {
   const { completedTrainings, completeTraining } = useGame();
   
   // Filter out already completed items, or just cycle through all of them
@@ -63,13 +64,14 @@ export default function TrainingScreen() {
         colors={[theme.colors.background, '#090D1E']}
         style={styles.container}
       >
+        <Header 
+          title="TREINAMENTO" 
+          subtitle="SIMULADOR DE DESINFORMAÇÃO" 
+          navigation={navigation} 
+          showAvatar={true} 
+        />
+        
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>TREINAMENTO</Text>
-            <Text style={styles.headerSubtitle}>SIMULADOR DE DESINFORMAÇÃO</Text>
-          </View>
 
           {/* Progress indicators */}
           <View style={styles.progContainer}>

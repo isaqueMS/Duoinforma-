@@ -1,5 +1,8 @@
+// Import React core utilities and context API
 import React, { createContext, useState, useEffect, useContext } from 'react';
+// Import Firebase configuration flags and services
 import { isFirebaseEnabled, auth, db } from '../../firebase.config';
+// Firebase Authentication functions used throughout the context
 import { 
   signInAnonymously, 
   signInWithEmailAndPassword, 
@@ -8,8 +11,11 @@ import {
   onAuthStateChanged,
   updateProfile
 } from 'firebase/auth';
+// Firestore document helpers for profile persistence
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+// Async storage for offline user fallback
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// Platform detection (web vs native) for Google Sign‑In configuration
 import { Platform } from 'react-native';
 
 // Configure Google Sign-in on Mobile when Firebase is enabled
@@ -25,8 +31,10 @@ if (Platform.OS !== 'web') {
   }
 }
 
+// Create a React context to expose authentication state and actions throughout the app
 const AuthContext = createContext({});
 
+// Provider component that wraps the app and manages auth lifecycle
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +42,7 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
 
   // Load offline user from storage on start
+    // Initialize authentication listener on mount
   useEffect(() => {
     let unsubscribe;
     
@@ -76,29 +85,14 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Anonymous Login / Fast Login (Convidado)
-  const loginAnonymously = async () => {
-    setLoading(true);
-    setAuthError(null);
-    if (isFirebaseEnabled) {
-      try {
-        await signInAnonymously(auth);
-      } catch (error) {
-        console.error('Erro no login anônimo Firebase:', error);
-        await loginOffline();
-      }
-    } else {
-      await loginOffline();
-    }
-  };
-
-  const loginOffline = async () => {
+    // Simulated offline login – generates a mock user and persists locally
+  const loginOffline = async (cleanEmail) => {
     const mockUid = 'offline_' + Math.random().toString(36).substr(2, 9);
     const mockUser = {
       uid: mockUid,
-      email: null,
-      isAnonymous: true,
-      displayName: 'Agente_' + Math.random().toString(36).substr(2, 5).toUpperCase(),
+      email: cleanEmail || null,
+      isAnonymous: false,
+      displayName: cleanEmail ? cleanEmail.split('@')[0] : 'Agente_' + Math.random().toString(36).substr(2, 5).toUpperCase(),
     };
     await AsyncStorage.setItem('@duoinforma_local_user', JSON.stringify(mockUser));
     setUser(mockUser);
@@ -107,6 +101,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Login with Google (Platform Hybrid)
+    // Main Google Sign‑In flow – handles web and native platforms, with fallback to offline simulation
   const loginWithGoogle = async () => {
     setLoading(true);
     setAuthError(null);
@@ -172,6 +167,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Simulated Google Auth on Mobile Emulator (creates a real Firebase User based on the Google Email)
+    // Simulated Google authentication used on emulators or when Firebase is disabled
   const loginWithGoogleSimulated = async (email, customPassword = null) => {
     setLoading(true);
     setAuthError(null);
@@ -228,65 +224,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register with Email
-  const registerWithEmail = async (name, email, password) => {
-    setLoading(true);
-    setAuthError(null);
-    if (isFirebaseEnabled) {
-      try {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        if (name) {
-          await updateProfile(cred.user, { displayName: name });
-        }
-      } catch (error) {
-        setLoading(false);
-        const msg = _translateFirebaseError(error.code);
-        setAuthError(msg);
-        throw new Error(msg);
-      }
-    } else {
-      const mockUser = {
-        uid: 'offline_' + Math.random().toString(36).substr(2, 9),
-        email: email,
-        isAnonymous: false,
-        displayName: name || email.split('@')[0],
-      };
-      await AsyncStorage.setItem('@duoinforma_local_user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      setIsOffline(true);
-      setLoading(false);
-    }
-  };
 
-  // Login with Email
-  const loginWithEmail = async (email, password) => {
-    setLoading(true);
-    setAuthError(null);
-    if (isFirebaseEnabled) {
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error) {
-        setLoading(false);
-        const msg = _translateFirebaseError(error.code);
-        setAuthError(msg);
-        throw new Error(msg);
-      }
-    } else {
-      // Local mock login — accept any credentials offline
-      const mockUser = {
-        uid: 'offline_user_' + email.replace(/[^a-z0-9]/gi, '_'),
-        email: email,
-        isAnonymous: false,
-        displayName: email.split('@')[0],
-      };
-      await AsyncStorage.setItem('@duoinforma_local_user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      setIsOffline(true);
-      setLoading(false);
-    }
-  };
 
   // Update display name (codinome do agente)
+    // Update the user's display name both locally and in Firebase (if enabled)
   const updateDisplayName = async (newName) => {
     if (!newName || !newName.trim()) return;
     const trimmed = newName.trim();
@@ -315,6 +256,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout
+    // Sign out the user, clear local storage and reset context state
   const logoutUser = async () => {
     setLoading(true);
     if (isFirebaseEnabled) {
@@ -350,9 +292,6 @@ export const AuthProvider = ({ children }) => {
       loading,
       isOffline,
       authError,
-      loginAnonymously,
-      loginWithEmail,
-      registerWithEmail,
       loginWithGoogle,
       loginWithGoogleSimulated,
       updateDisplayName,
@@ -363,5 +302,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// Hook shortcut for consuming AuthContext
 export const useAuth = () => useContext(AuthContext);
 export default AuthContext;

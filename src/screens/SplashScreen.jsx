@@ -5,7 +5,7 @@ import { theme } from '../styles/theme';
 import NeonButton from '../components/NeonButton';
 
 const { width } = Dimensions.get('window');
-const LOGO = require('../../assets/icon.png');
+const LOGO = require('../../assets/logo.png');
 
 export default function SplashScreen({ navigation }) {
   const scanAnim = useRef(new Animated.Value(0)).current;
