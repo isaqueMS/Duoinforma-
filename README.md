@@ -1,5 +1,9 @@
 # 🛡️ Duoinforma - Central Cybernética de Capacitação e Verificação de Segurança
 
+<p align="center">
+  <img src="screenshots/capa.png" alt="Capa do Duoinforma" width="100%" />
+</p>
+
 O **Duoinforma** é um ecossistema mobile de alta fidelidade desenvolvido em **React Native com Expo (v54.0.0)** e **Firebase Auth/Firestore**. Inspirado em jogos cibernéticos e estéticas de ficção científica (Cyberpunk/Glassmorphism/Neon Dark Mode), o aplicativo tem o propósito de capacitar cidadãos comuns contra as maiores ameaças digitais do século XXI: engenharia social, phishing, desinformação (Fake News), deepfakes de voz/vídeo e golpes financeiros.
 
 ---
