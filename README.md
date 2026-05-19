@@ -4,6 +4,20 @@ O **Duoinforma** é um ecossistema mobile de alta fidelidade desenvolvido em **R
 
 ---
 
+## 📸 Demonstração Visual (Screenshots)
+
+Aqui estão as telas principais do aplicativo rodando em alta fidelidade:
+
+| Tela Inicial (Emulador) | Verificação de Links (Heurística) |
+| :---: | :---: |
+| ![Tela Inicial](screenshots/tela_inicio_emulador.png) | ![Verificação de Links](screenshots/verificacao_link.png) |
+
+| Treinamento Cibernético | Exames & Certificações | Perfil do Agente |
+| :---: | :---: | :---: |
+| ![Treinamento](screenshots/treinamento_cibernetico.png) | ![Exames](screenshots/exame_certificacao.png) | ![Perfil do Agente](screenshots/perfil_agente.png) |
+
+---
+
 ## 🚀 Funcionalidades Principais
 
 * **👾 Central de Treinamentos (Fake vs. Real)**: Esteira iterativa baseada em posts simulados de redes sociais e canais de comunicação com diagnósticos pedagógicos detalhados sobre as características de desinformação.
