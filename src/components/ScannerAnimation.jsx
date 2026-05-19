@@ -1,12 +1,28 @@
+// Import core React hooks
 import React, { useEffect, useRef } from 'react';
+
+// Import core layout, animation, and easing utilities from React Native
 import { StyleSheet, View, Animated, Easing } from 'react-native';
+
+// Import central design theme tokens
 import { theme } from '../styles/theme';
 
+/**
+ * ScannerAnimation component.
+ * Renders a futuristic cyber grid overlay with an animated horizontal laser scanning line.
+ * Used during security checks, QR code scans, or database processing visual states.
+ * 
+ * @param {boolean} active - Starts/stops the infinite loop laser translation animation
+ * @param {string} color - The primary glow color for the laser line
+ */
 export default function ScannerAnimation({ active = false, color = theme.colors.primary }) {
+  // Floating translation animated coordinate reference
   const animatedValue = useRef(new Animated.Value(0)).current;
 
+  // React hook to handle start, loop, and cleanup of the laser scanning animation
   useEffect(() => {
     if (active) {
+      // Loop sequence: moves from top to bottom (2s) then bottom to top (2s) infinitely
       Animated.loop(
         Animated.sequence([
           Animated.timing(animatedValue, {
@@ -24,21 +40,23 @@ export default function ScannerAnimation({ active = false, color = theme.colors.
         ])
       ).start();
     } else {
+      // Return laser line immediately to the top of the card
       animatedValue.setValue(0);
     }
   }, [active]);
 
+  // If the animation is inactive, do not paint it
   if (!active) return null;
 
-  // Interpolate position from top (0%) to bottom (100%)
+  // Interpolate position from top (0%) to bottom (100% / 180px offset)
   const translateY = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 180] // height of scanning container
+    outputRange: [0, 180] // Height boundary matching styles.scannerBox
   });
 
   return (
     <View style={styles.scannerBox}>
-      {/* Dynamic Grid Background */}
+      {/* Dynamic Futuristic Grid Background */}
       <View style={styles.gridOverlay}>
         <View style={styles.horizontalLine} />
         <View style={styles.horizontalLine} />
@@ -50,7 +68,7 @@ export default function ScannerAnimation({ active = false, color = theme.colors.
         <View style={styles.verticalLine} />
       </View>
       
-      {/* Scanning Laser Beam */}
+      {/* Glowing Scanning Laser Beam Line */}
       <Animated.View style={[
         styles.laserBeam, 
         { 
@@ -63,6 +81,7 @@ export default function ScannerAnimation({ active = false, color = theme.colors.
   );
 }
 
+// Styling configurations for cyber grids and absolute overlay laser layers
 const styles = StyleSheet.create({
   scannerBox: {
     height: 180,
@@ -109,5 +128,6 @@ const styles = StyleSheet.create({
   }
 });
 export const styles_verticalLine_helper = StyleSheet.create({
-  // Multiple vertical lines can be placed if needed manually
+  // Helper styling for extra customization placeholders
 });
+

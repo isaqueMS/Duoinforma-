@@ -1,11 +1,22 @@
+// Import core React libraries and state hook modules
 import React, { createContext, useState, useEffect, useContext } from 'react';
+
+// Import custom authentication state hook
 import { useAuth } from './AuthContext';
+
+// Import Firebase config flags and database connections
 import { isFirebaseEnabled, db } from '../../firebase.config';
+
+// Import Firestore CRUD helpers to store and load gamestate data
 import { doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+
+// Import AsyncStorage for persistent game state caching on offline devices
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Create a React context to expose game status variables
 const GameContext = createContext({});
 
+// Progression criteria matching levels to point scores
 const LEVELS = [
   { minPoints: 0, title: 'Recruta Digital', badge: '🤖' },
   { minPoints: 100, title: 'Cibercadete', badge: '🛡️' },
@@ -15,6 +26,7 @@ const LEVELS = [
   { minPoints: 1500, title: 'Mestre Anti-Fake', badge: '👑' }
 ];
 
+// Achievements with unique IDs, titles, descriptions, and XP rewards
 const ACHIEVEMENTS = [
   { id: 'first_training', title: 'Primeiro Alerta', description: 'Concluiu a análise da primeira postagem.', badge: '⚡', points: 30 },
   { id: 'perfect_3', title: 'Analista Preciso', description: 'Acertou 3 análises seguidas no Treinamento.', badge: '🎯', points: 50 },
@@ -26,8 +38,16 @@ const ACHIEVEMENTS = [
   { id: 'exam_dificil', title: 'Ciber-Oráculo', description: 'Aprovado no Exame Nível Difícil.', badge: '🔮', points: 250 }
 ];
 
+/**
+ * GameProvider component.
+ * Manages XP scoring, daily streaks, training modules completion lists,
+ * badges earned, scan URL logs, age/location metadata and Firestore synchronizations.
+ */
 export const GameProvider = ({ children }) => {
+  // Obtain current user and connection states
   const { user, isOffline } = useAuth();
+  
+  // Game state properties
   const [points, setPoints] = useState(0);
   const [streak, setStreak] = useState(1);
   const [completedTrainings, setCompletedTrainings] = useState([]);
@@ -40,7 +60,9 @@ export const GameProvider = ({ children }) => {
   const [age, setAge] = useState(null);
   const [location, setLocation] = useState(null);
 
-  // Get current Level title and badge
+  /**
+   * Helper function to calculate current level title and badge emoji.
+   */
   const getCurrentLevel = () => {
     let current = LEVELS[0];
     for (let i = 0; i < LEVELS.length; i++) {
@@ -53,10 +75,12 @@ export const GameProvider = ({ children }) => {
     return current;
   };
 
-  // Fetch dynamic leaderboard from Firestore
+  /**
+   * Fetches top-performing user scores from the cloud database
+   * or falls back to simulated entries if offline.
+   */
   const fetchLeaderboard = async () => {
     if (!isFirebaseEnabled) {
-      // Offline fallback leaderboard
       setLeaderboard([
         { rank: 1, name: 'CyberGuardian_9', points: 2850, level: 'Mestre Anti-Fake 👑' },
         { rank: 2, name: 'FactFinder_Neo', points: 2420, level: 'Mestre Anti-Fake 👑' },
@@ -67,6 +91,7 @@ export const GameProvider = ({ children }) => {
     }
 
     try {
+      // Query top 10 users ordered by points desc
       const q = query(collection(db, 'gamestate'), orderBy('points', 'desc'), limit(10));
       const querySnapshot = await getDocs(q);
       const list = [];
@@ -82,7 +107,7 @@ export const GameProvider = ({ children }) => {
         rank++;
       });
 
-      // If empty or has very few items, fill with mock data so it looks premium and populated
+      // If empty or has very few items, append mock data for visual layout stability
       if (list.length < 4) {
         const mockList = [
           { rank: list.length + 1, name: 'CyberGuardian_9', points: 2850, level: 'Mestre Anti-Fake 👑' },
@@ -91,7 +116,7 @@ export const GameProvider = ({ children }) => {
           { rank: list.length + 4, name: 'CibernautaReal', points: 1450, level: 'Guardião da Verdade 🔮' }
         ];
         
-        // Combine real and mock, then sort again
+        // Merge list with mocks, sort by points and assign correct ranks
         const combined = [...list, ...mockList]
           .sort((a, b) => b.points - a.points)
           .map((item, index) => ({ ...item, rank: index + 1 }));
@@ -111,7 +136,7 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Load gamestate
+  // Synchronizes and loads gamestate on sign-in or offline toggle
   useEffect(() => {
     const loadGameState = async () => {
       if (!user) {
@@ -128,7 +153,7 @@ export const GameProvider = ({ children }) => {
       setLoading(true);
       let loadedState = null;
 
-      // 1. Try local storage first (always, for fast load)
+      // Try local storage cache
       try {
         const localStateStr = await AsyncStorage.getItem(`@duoinforma_game_${user.uid}`);
         if (localStateStr) {
@@ -138,14 +163,14 @@ export const GameProvider = ({ children }) => {
         console.error("Erro ao carregar gamestate local", e);
       }
 
-      // 2. Try Firebase Firestore if online
+      // Try fetching cloud Firestore data
       if (isFirebaseEnabled && !isOffline) {
         try {
           const docRef = doc(db, 'gamestate', user.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const firebaseState = docSnap.data();
-            // Merge or choose the one with higher points/more progress
+            // Merge states, keeping whichever has the highest score
             if (!loadedState || firebaseState.points >= loadedState.points) {
               loadedState = firebaseState;
             }
@@ -155,7 +180,7 @@ export const GameProvider = ({ children }) => {
         }
       }
 
-      // 3. Set states
+      // Populate local variables
       if (loadedState) {
         setPoints(loadedState.points || 0);
         setStreak(loadedState.streak || 1);
@@ -167,7 +192,7 @@ export const GameProvider = ({ children }) => {
         setAge(loadedState.age || null);
         setLocation(loadedState.location || null);
       } else {
-        // Init default state
+        // Fallback default variables
         setPoints(0);
         setStreak(1);
         setCompletedTrainings([]);
@@ -180,14 +205,14 @@ export const GameProvider = ({ children }) => {
       }
       setLoading(false);
       
-      // Fetch leaderboard once gamestate loads
+      // Pull leaderboard rankings
       fetchLeaderboard();
     };
 
     loadGameState();
   }, [user, isOffline]);
 
-  // Keep displayName on leaderboard synced when user changes it in AuthContext
+  // Synchronizes leaderboard displayName when agent profile gets edited
   useEffect(() => {
     const syncDisplayName = async () => {
       if (user && isFirebaseEnabled && !isOffline) {
@@ -206,7 +231,10 @@ export const GameProvider = ({ children }) => {
     syncDisplayName();
   }, [user?.displayName, isOffline]);
 
-  // Sync state helper
+  /**
+   * Unified persistence routine.
+   * Saves updated points, achievements, and statistics to local storage and Firestore.
+   */
   const syncGameState = async (newPoints, newCompleted, newAchievements, newHistory, newUnlockedLevel = unlockedExamLevel, newScores = examScores) => {
     if (!user) return;
 
@@ -229,14 +257,14 @@ export const GameProvider = ({ children }) => {
       updatedAt: new Date().toISOString()
     };
 
-    // Save locally
+    // Store in async storage
     try {
       await AsyncStorage.setItem(`@duoinforma_game_${user.uid}`, JSON.stringify(stateToSave));
     } catch (e) {
       console.error("Erro ao salvar gamestate local:", e);
     }
 
-    // Save to Firestore if online
+    // Push to cloud database
     if (isFirebaseEnabled && !isOffline) {
       try {
         await setDoc(doc(db, 'gamestate', user.uid), stateToSave, { merge: true });
@@ -245,11 +273,13 @@ export const GameProvider = ({ children }) => {
       }
     }
 
-    // Refresh leaderboard
+    // Refresh leaderboards
     fetchLeaderboard();
   };
 
-  // Update Age and Location
+  /**
+   * Updates user demographic metadata (Age and Location) in local profile and database.
+   */
   const updateUserMetadata = async (newAge, newLocation) => {
     if (!user) return;
 
@@ -275,14 +305,12 @@ export const GameProvider = ({ children }) => {
       updatedAt: new Date().toISOString()
     };
 
-    // Save locally
     try {
       await AsyncStorage.setItem(`@duoinforma_game_${user.uid}`, JSON.stringify(stateToSave));
     } catch (e) {
       console.error("Erro ao salvar metadata local:", e);
     }
 
-    // Save to Firestore if online
     if (isFirebaseEnabled && !isOffline) {
       try {
         await setDoc(doc(db, 'gamestate', user.uid), stateToSave, { merge: true });
@@ -292,7 +320,9 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Get progress to next level
+  /**
+   * Calculates numerical percentage fill until user reaches the next rank milestone.
+   */
   const getNextLevelProgress = () => {
     let currentIdx = 0;
     for (let i = 0; i < LEVELS.length; i++) {
@@ -321,12 +351,14 @@ export const GameProvider = ({ children }) => {
     };
   };
 
-  // Add Points
+  /**
+   * General-purpose points addition function.
+   */
   const addPoints = async (amount) => {
     const newPoints = points + amount;
     setPoints(newPoints);
     
-    // Check level up achievement
+    // Check rank progression achievement triggers
     let updatedAchievements = [...achievements];
     const prevLevel = LEVELS.find(l => points >= l.minPoints);
     const nextLevel = LEVELS.find(l => newPoints >= l.minPoints);
@@ -339,7 +371,9 @@ export const GameProvider = ({ children }) => {
     await syncGameState(newPoints, completedTrainings, updatedAchievements, scannerHistory);
   };
 
-  // Complete a training
+  /**
+   * Completes a training factcheck post analysis.
+   */
   const completeTraining = async (id, isCorrect, pointsEarned) => {
     if (completedTrainings.includes(id)) return;
 
@@ -352,26 +386,27 @@ export const GameProvider = ({ children }) => {
       setPoints(finalPoints);
     }
 
-    // Achievements logic
     const updatedAchievements = [...achievements];
     
-    // 1. First training
+    // Check first training completion
     if (newCompleted.length === 1 && !achievements.includes('first_training')) {
       updatedAchievements.push('first_training');
       finalPoints += 30; // bonus points
     }
 
-    // 2. Perfect 3 analyses
+    // Check perfect sequence of 3 analyses
     if (newCompleted.length >= 3 && isCorrect && !achievements.includes('perfect_3')) {
       updatedAchievements.push('perfect_3');
-      finalPoints += 50; // bonus
+      finalPoints += 50; // bonus points
     }
 
     setAchievements(updatedAchievements);
     await syncGameState(finalPoints, newCompleted, updatedAchievements, scannerHistory);
   };
 
-  // Add search scan history item
+  /**
+   * Appends dynamic web scan / verified text to user's dashboard history lists.
+   */
   const addScanHistory = async (content, result, type) => {
     const newHistoryItem = {
       id: Math.random().toString(36).substr(2, 9),
@@ -381,34 +416,36 @@ export const GameProvider = ({ children }) => {
       timestamp: new Date().toLocaleDateString('pt-BR')
     };
 
-    const newHistory = [newHistoryItem, ...scannerHistory].slice(0, 10); // Keep last 10 scans
+    const newHistory = [newHistoryItem, ...scannerHistory].slice(0, 10);
     setScannerHistory(newHistory);
 
-    let finalPoints = points + 15; // 15 points per verification scan
+    let finalPoints = points + 15; // 15 points awarded per scan validation
     setPoints(finalPoints);
 
     const updatedAchievements = [...achievements];
     if (newHistory.length >= 5 && !achievements.includes('scanner_master')) {
       updatedAchievements.push('scanner_master');
-      finalPoints += 60; // bonus
+      finalPoints += 60; // bonus points
       setPoints(finalPoints);
     }
 
     await syncGameState(finalPoints, completedTrainings, updatedAchievements, newHistory);
   };
 
-  // Complete Exam Level with Progression Logic
+  /**
+   * Completes Exam levels and handles progression locks.
+   * Requires scoring >= 70% to trigger higher difficulty tiers (Médio -> Difícil).
+   */
   const completeExamLevel = async (level, score) => {
     const totalQuestions = level === 'facil' ? 15 : level === 'medio' ? 20 : 15;
     const percentage = score / totalQuestions;
-    const passed = percentage >= 0.7; // 70% passing score
+    const passed = percentage >= 0.7; // 70% passing threshold
     
     let nextUnlockedLevel = unlockedExamLevel;
     let finalPoints = points;
     const updatedAchievements = [...achievements];
     const updatedScores = { ...examScores };
 
-    // Update highest score if this score is better
     if (updatedScores[level] === null || score > updatedScores[level]) {
       updatedScores[level] = score;
     }
@@ -417,7 +454,6 @@ export const GameProvider = ({ children }) => {
     let unlockedNewLevel = false;
 
     if (passed) {
-      // Award first-time pass bonus and progression
       if (level === 'facil') {
         if (!achievements.includes('exam_facil')) {
           updatedAchievements.push('exam_facil');
@@ -495,5 +531,7 @@ export const GameProvider = ({ children }) => {
   );
 };
 
+// Hook shortcut for consuming GameContext variables inside views
 export const useGame = () => useContext(GameContext);
 export default GameContext;
+

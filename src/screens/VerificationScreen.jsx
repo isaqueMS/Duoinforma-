@@ -1,8 +1,19 @@
+// Import React core hooks
 import React, { useState } from 'react';
+
+// Import essential user interface elements, scroll areas, loaders, and input fields from React Native
 import { StyleSheet, View, Text, SafeAreaView, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+
+// Import LinearGradient component from expo package
 import { LinearGradient } from 'expo-linear-gradient';
+
+// Import our design system style configurations
 import { theme } from '../styles/theme';
+
+// Import our customized game state context provider to persist scan logs
 import { useGame } from '../context/GameContext';
+
+// Import local custom high-fidelity animation components
 import GlassCard from '../components/GlassCard';
 import NeonButton from '../components/NeonButton';
 import ScannerAnimation from '../components/ScannerAnimation';
@@ -10,14 +21,14 @@ import Header from '../components/Header';
 
 // ─── Heuristic Analysis Engine ─────────────────────────────────────────────────
 
-// Suspicious domain extensions or patterns
+// Collection of typical suspicious domain extensions and bait expressions
 const SUSPICIOUS_DOMAINS = [
   '.xyz', '.ru', '.click', '.online', '.info', '.biz', '.tk', '.ml',
   'login-', 'seguro-', 'banco-', 'gratuito-', 'gratis-', 'clique-',
   'oferta-', 'premio-', 'urgente-', 'ganhe-', 'desconto-', 'promo-'
 ];
 
-// Fake news keyword categories
+// Heuristic keyword patterns used to tag specific disinformation categories
 const FAKE_NEWS_PATTERNS = [
   // Health misinformation
   { terms: ['cura o câncer', 'cura cancer', 'cura o covid', 'cloroquina cura', 'ivermectina cura', 'chá milagroso', 'limão cura', 'bicarbonato cura', 'chip na vacina', 'vacina 5g', 'vacina chip', 'microchip na vacina', 'vacina mata', 'veneno na vacina'], flag: 'Desinformação médica e anti-vacina detectada', penalty: 40 },
@@ -35,14 +46,22 @@ const FAKE_NEWS_PATTERNS = [
   { terms: ['foto manipulada', 'imagem falsa provando', 'vídeo comprovando', 'gravação vazada comprovando'], flag: 'Possível deepfake ou material manipulado digitalmente', penalty: 30 },
 ];
 
-// Missing source patterns
+// Anonymity source verification keywords
 const SOURCE_FLAGS = [
   { terms: ['segundo fontes', 'dizem que', 'me disseram que', 'um médico disse', 'um militar disse', 'ouvi dizer que', 'circulando nas redes', 'no whatsapp dizem'], flag: 'Ausência de fonte verificável — informação anônima', penalty: 22 },
 ];
 
+/**
+ * Custom offline NLP Analyzer.
+ * Checks for punctuation, fake news patterns, uppercase shouting, and domain patterns.
+ * 
+ * @param {string} input - Text or URL being validated
+ * @param {string} type - Tab mode ('text' | 'link')
+ * @returns {object} Analysis metrics including confidence score, status color, and flags list
+ */
 function analyzeContent(input, type) {
   const lower = input.toLowerCase();
-  let score = 92;
+  let score = 92; // Base confidence score
   const flags = [];
 
   // 1. Link-specific checks
@@ -58,7 +77,7 @@ function analyzeContent(input, type) {
         break;
       }
     }
-    // Check for cloned major news sites
+    // Check for cloned major news portals
     const clonedSites = [
       { real: 'g1.globo.com', fakes: ['g1-noticia', 'g1globo.', 'g-1globo', 'gl.globo', 'g1.glob0'] },
       { real: 'uol.com.br', fakes: ['u0l.com', 'uol-noticias', 'uol.com.ru'] },
@@ -73,7 +92,7 @@ function analyzeContent(input, type) {
     }
   }
 
-  // 2. Fake news content patterns
+  // 2. Fake news content patterns parsing
   for (const category of FAKE_NEWS_PATTERNS) {
     for (const term of category.terms) {
       if (lower.includes(term)) {
@@ -86,7 +105,7 @@ function analyzeContent(input, type) {
     }
   }
 
-  // 3. Anonymous source patterns
+  // 3. Anonymous source patterns parsing
   for (const category of SOURCE_FLAGS) {
     for (const term of category.terms) {
       if (lower.includes(term)) {
@@ -99,26 +118,27 @@ function analyzeContent(input, type) {
     }
   }
 
-  // 4. Excessive uppercase (shouting text)
+  // 4. Excessive uppercase (shouting text) detection
   const uppercaseRatio = (input.match(/[A-ZÁÉÍÓÚÀÃÕÂÊÔÇ]/g) || []).length / Math.max(input.length, 1);
   if (uppercaseRatio > 0.4 && input.length > 20) {
     score -= 12;
     flags.push('Excesso de letras maiúsculas — técnica comum para gerar urgência falsa');
   }
 
-  // 5. Excessive exclamation marks
+  // 5. Excessive exclamation marks assessment
   const exclamationCount = (input.match(/[!?]/g) || []).length;
   if (exclamationCount >= 3) {
     score -= 10;
     flags.push('Uso excessivo de pontuação emocional (! e ?) — padrão sensacionalista');
   }
 
-  // 6. Very short content (can't assess)
+  // 6. Very short content safeguard
   if (input.trim().length < 20) {
     score = 50;
     flags.push('Conteúdo muito curto para análise profunda — avalie o contexto completo');
   }
 
+  // Limit bounds to [5, 100]
   score = Math.max(Math.min(Math.round(score), 100), 5);
 
   let status = 'CONFIÁVEL';
@@ -147,17 +167,25 @@ function analyzeContent(input, type) {
   };
 }
 
-// ─── Component ─────────────────────────────────────────────────────────────────
-
+/**
+ * VerificationScreen component.
+ * Allows users to paste links or custom texts, running heuristic NLP checks to compute a confidence metric.
+ * Includes interactive loading bars and persistent scans history list.
+ * 
+ * @param {object} navigation - React navigation route handler
+ */
 export default function VerificationScreen({ navigation }) {
+  // Extract scans history list and persistence dispatcher
   const { addScanHistory, scannerHistory } = useGame();
   
-  const [inputType, setInputType] = useState('text');
+  // Local states
+  const [inputType, setInputType] = useState('text'); // 'text' | 'link'
   const [inputValue, setInputValue] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgressText, setScanProgressText] = useState('');
   const [scanResult, setScanResult] = useState(null);
 
+  // Triggers mock scanning stages and then processes heuristics
   const startScan = () => {
     if (!inputValue.trim()) return;
 
@@ -173,10 +201,12 @@ export default function VerificationScreen({ navigation }) {
       'CALCULANDO ÍNDICE DE CONFIABILIDADE DIGITAL...',
     ];
 
+    // Stepper updates during scan simulation
     diagnostics.forEach((text, index) => {
       setTimeout(() => setScanProgressText(text), (index + 1) * 600);
     });
 
+    // Concludes scan after delay and appends logs into global game states
     setTimeout(() => {
       setIsScanning(false);
       const result = analyzeContent(inputValue, inputType);
@@ -190,6 +220,7 @@ export default function VerificationScreen({ navigation }) {
     }, 3600);
   };
 
+  // Clears user form entries
   const clearForm = () => {
     setInputValue('');
     setScanResult(null);
@@ -201,6 +232,7 @@ export default function VerificationScreen({ navigation }) {
         colors={[theme.colors.background, '#090E20']}
         style={styles.container}
       >
+        {/* Render custom page header */}
         <Header 
           title="SCANNER DIGITAL" 
           subtitle="MOTOR DE ANÁLISE HEURÍSTICA v2.0" 
@@ -210,7 +242,7 @@ export default function VerificationScreen({ navigation }) {
         
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-          {/* Type Selector Tabs */}
+          {/* Type Selector Tabs: Text vs Link checks */}
           <View style={styles.tabContainer}>
             <TouchableOpacity 
               onPress={() => { setInputType('text'); clearForm(); }}
@@ -227,7 +259,7 @@ export default function VerificationScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* Info banner */}
+          {/* Contextual instruction banners */}
           <View style={styles.infoBanner}>
             <Text style={styles.infoBannerText}>
               {inputType === 'text'
@@ -236,7 +268,7 @@ export default function VerificationScreen({ navigation }) {
             </Text>
           </View>
 
-          {/* Form Card */}
+          {/* Primary Form fields area */}
           <GlassCard style={styles.formCard} borderType="neonPrimary">
             <Text style={styles.inputLabel}>
               {inputType === 'text' 
@@ -270,6 +302,7 @@ export default function VerificationScreen({ navigation }) {
               />
             )}
 
+            {/* Simulated holographic laser scanning overlays */}
             {isScanning && (
               <View style={styles.scanningWrapper}>
                 <ScannerAnimation active={true} color={theme.colors.primary} />
@@ -279,7 +312,7 @@ export default function VerificationScreen({ navigation }) {
             )}
           </GlassCard>
 
-          {/* Diagnostic Result Output */}
+          {/* Heuristic Diagnostic results card outputs */}
           {scanResult && (
             <GlassCard 
               style={styles.resultCard} 
@@ -287,6 +320,7 @@ export default function VerificationScreen({ navigation }) {
             >
               <Text style={styles.resultHeader}>DIAGNÓSTICO FINALIZADO:</Text>
               
+              {/* Trust Score Radial gauge display */}
               <View style={styles.gaugeContainer}>
                 <View style={[styles.gaugeTrack, { borderColor: scanResult.color }]}>
                   <Text style={[styles.gaugeScore, { color: scanResult.color }]}>{scanResult.score}%</Text>
@@ -299,6 +333,7 @@ export default function VerificationScreen({ navigation }) {
 
               <View style={styles.resultDivider} />
 
+              {/* Lists all spotted suspicious pattern flags */}
               <Text style={styles.sectionSub}>SINAIS DE ANOMALIA DETECTADOS:</Text>
               {scanResult.flags.map((flag, idx) => (
                 <Text key={idx} style={styles.flagItem}>
@@ -311,6 +346,7 @@ export default function VerificationScreen({ navigation }) {
               <Text style={styles.sectionSub}>RECOMENDAÇÃO DO SISTEMA:</Text>
               <Text style={styles.recommendationText}>{scanResult.recommendation}</Text>
 
+              {/* Appends verified Brazilian fact-checking links for risky scores */}
               {scanResult.score < 60 && (
                 <View style={styles.factCheckBox}>
                   <Text style={styles.factCheckTitle}>🔎 Sites de Fact-Checking Recomendados:</Text>
@@ -330,7 +366,7 @@ export default function VerificationScreen({ navigation }) {
             </GlassCard>
           )}
 
-          {/* Scanning History */}
+          {/* Historical Scans persistent list */}
           {scannerHistory.length > 0 && (
             <View style={styles.historyContainer}>
               <Text style={styles.historyTitle}>REGISTROS DE SCAN ANTERIORES</Text>
@@ -364,6 +400,7 @@ export default function VerificationScreen({ navigation }) {
   );
 }
 
+// StyleSheet specifications representing neon cybersecurity themes
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -610,3 +647,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   }
 });
+

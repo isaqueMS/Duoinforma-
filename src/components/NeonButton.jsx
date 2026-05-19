@@ -1,18 +1,39 @@
+// Import React and standard state/ref management hooks
 import React, { useRef } from 'react';
+
+// Import essential layout and animation utilities from React Native
 import { StyleSheet, Text, TouchableOpacity, Animated } from 'react-native';
+
+// Import LinearGradient from Expo to construct glowing cyber gradients
 import { LinearGradient } from 'expo-linear-gradient';
+
+// Import design system style configurations
 import { theme } from '../styles/theme';
 
+/**
+ * NeonButton component.
+ * Custom glowing action button with spring animation feedback on press,
+ * supports multiple visual variants (primary neon blue, secondary magenta, accent green, danger red, and outline).
+ * 
+ * @param {function} onPress - Callback function triggered on button press
+ * @param {string} title - Text displayed inside the button
+ * @param {string} variant - Visual design style ('primary' | 'secondary' | 'accent' | 'danger' | 'outline')
+ * @param {object} style - External layout overrides for button container
+ * @param {object} textStyle - External text color/font override props
+ * @param {boolean} disabled - Blocks touch interactions and displays dark theme
+ */
 export default function NeonButton({ 
   onPress, 
   title, 
-  variant = 'primary', // 'primary', 'secondary', 'accent', 'danger', 'outline'
+  variant = 'primary', 
   style, 
   textStyle,
   disabled = false
 }) {
+  // Animation scale value ref to create click shrink effects
   const scaleValue = useRef(new Animated.Value(1)).current;
 
+  // Spring animation on button touch start - shrinks button slightly
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
       toValue: 0.96,
@@ -20,6 +41,7 @@ export default function NeonButton({
     }).start();
   };
 
+  // Spring animation on button touch end - returns button to full size
   const handlePressOut = () => {
     Animated.spring(scaleValue, {
       toValue: 1,
@@ -27,6 +49,7 @@ export default function NeonButton({
     }).start();
   };
 
+  // Selects dual gradient colors matching standard cyber theme
   const getGradientColors = () => {
     if (disabled) {
       return [theme.colors.surfaceSecondary, theme.colors.surfaceSecondary];
@@ -46,9 +69,11 @@ export default function NeonButton({
     }
   };
 
+  // Outline style flag determination
   const isOutline = variant === 'outline';
 
   return (
+    // Scaled container wrapping touch action for smooth feedback
     <Animated.View style={[{ transform: [{ scale: scaleValue }] }, style]}>
       <TouchableOpacity
         onPress={onPress}
@@ -62,6 +87,7 @@ export default function NeonButton({
           disabled && styles.disabledContainer
         ]}
       >
+        {/* Render horizontal gradient background on active filled buttons */}
         <LinearGradient
           colors={getGradientColors()}
           start={{ x: 0, y: 0 }}
@@ -82,6 +108,7 @@ export default function NeonButton({
   );
 }
 
+// Neon button styles with heavy contrast text colors and shadows
 const styles = StyleSheet.create({
   buttonContainer: {
     borderRadius: theme.roundness.md,
@@ -125,3 +152,4 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
   }
 });
+

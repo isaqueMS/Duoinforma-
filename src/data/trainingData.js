@@ -1,3 +1,22 @@
+/**
+ * BASE DE DADOS DE SIMULAÇÕES E TREINAMENTOS CIBERNÉTICOS (trainingData)
+ * 
+ * Este arquivo fornece o conjunto de dados estáticos para alimentar a esteira de posts da tela de treinamentos (TrainingScreen).
+ * Cada objeto define um post de rede social simulado que pode ser real ou falso (Fake News), contendo as seguintes propriedades:
+ * 
+ * @property {string} id - Identificador de string única do post (ex: 't1', 't2').
+ * @property {string} type - Tipo de layout do post ('social' | 'news' | 'image').
+ * @property {string} title - Título curto contextual do local de publicação.
+ * @property {string} content - Texto completo contido na publicação simulada.
+ * @property {string} author - Nome de usuário fictício do autor do post.
+ * @property {string} timestamp - Timestamp amigável ou tempo decorrido da publicação.
+ * @property {string} [likes] - Quantidade aproximada de curtidas (opcional).
+ * @property {string} [shares] - Quantidade aproximada de compartilhamentos (opcional).
+ * @property {boolean} isReal - Booleano crucial definindo se a notícia/post é real (true) ou fake (false).
+ * @property {string} category - Classificação temática da ameaça (ex: 'Saúde / Pseudo-ciência').
+ * @property {string} explanation - Texto pedagógico completo detalhando por que o post é real ou falso.
+ * @property {string[]} tips - Array contendo exatamente 3 dicas/diretrizes de segurança para ajudar o usuário.
+ */
 export const trainingData = [
   {
     id: 't1',

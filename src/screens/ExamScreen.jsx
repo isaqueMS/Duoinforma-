@@ -1,99 +1,175 @@
+// Importação do React e Hooks necessários para gerenciar estados e efeitos colaterais
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  ActivityIndicator,
-  Dimensions
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { theme } from '../styles/theme';
-import { useGame } from '../context/GameContext';
-import { EXAM_QUESTIONS } from '../data/examQuestions';
-import GlassCard from '../components/GlassCard';
-import NeonButton from '../components/NeonButton';
-import ProgressBar from '../components/ProgressBar';
-import { Ionicons } from '@expo/vector-icons';
-import Header from '../components/Header';
 
+// Importação de componentes fundamentais da biblioteca padrão do React Native
+import {
+  StyleSheet,          // Utilitário para definição de folhas de estilo otimizadas
+  View,                // Componente conteiner padrão para montagem de layout
+  Text,                // Componente para renderização de blocos de texto estilizados
+  ScrollView,          // Container que permite rolagem vertical ou horizontal de conteúdos
+  TouchableOpacity,    // Botão interativo com efeito de opacidade ao ser tocado
+  SafeAreaView,        // Garante que o conteúdo respeite áreas seguras como notch e barra de tarefas
+  StatusBar,           // Componente para controle da aparência da barra de status do dispositivo
+  ActivityIndicator,   // Indicador visual de carregamento (spinner) para processos assíncronos
+  Dimensions           // API para medição das dimensões da tela física do dispositivo
+} from 'react-native';
+
+// Importação do LinearGradient do Expo para criação de fundos degradês cibernéticos e premium
+import { LinearGradient } from 'expo-linear-gradient';
+
+// Importação do sistema central de estilos e paleta de cores cibernéticas (Neon Theme)
+import { theme } from '../styles/theme';
+
+// Importação do hook do contexto global do jogo para gerenciar progresso do jogador
+import { useGame } from '../context/GameContext';
+
+// Importação da base de dados estática contendo as questões estruturadas dos exames
+import { EXAM_QUESTIONS } from '../data/examQuestions';
+
+// Importação de componentes customizados do ecossistema visual da aplicação
+import GlassCard from '../components/GlassCard';         // Card com efeito de glassmorphism translúcido
+import NeonButton from '../components/NeonButton';       // Botão interativo com efeito neon brilhante
+import ProgressBar from '../components/ProgressBar';     // Barra de progresso para a conclusão das etapas
+import { Ionicons } from '@expo/vector-icons';           // Conjunto de ícones vetoriais fornecidos pelo Expo
+import Header from '../components/Header';               // Cabeçalho unificado com foto do agente e botão voltar
+
+// Obtenção da largura física da tela para possíveis cálculos proporcionais de layout
 const { width } = Dimensions.get('window');
 
+/**
+ * Componente principal da Tela de Exames (ExamScreen).
+ * Este módulo gerencia toda a lógica de aplicação de questionários de segurança,
+ * desde a escolha da dificuldade até a validação holográfica de resultados e emissão de credenciais.
+ */
 export default function ExamScreen({ navigation }) {
-  const { unlockedExamLevel, examScores, completeExamLevel, points } = useGame();
+  // Destruturação dos estados globais expostos pelo GameContext para controle de exames e pontuação
+  const { 
+    unlockedExamLevel,    // Indica o nível máximo de exame que o usuário já desbloqueou ('facil', 'medio', 'dificil')
+    examScores,           // Objeto contendo as pontuações mais altas registradas em cada nível de exame
+    completeExamLevel,    // Função assíncrona responsável por registrar a conclusão do exame e computar bônus
+    points                // Saldo atual de pontos de XP do jogador
+  } = useGame();
 
-  // Navigation and active states
-  const [activeStep, setActiveStep] = useState('menu'); // 'menu' | 'quiz' | 'analyzing' | 'report'
-  const [selectedDifficulty, setSelectedDifficulty] = useState(null); // 'facil' | 'medio' | 'dificil'
+  // --- Estados de Navegação e Fluxo Interno ---
+  // activeStep define o passo atual do fluxo: 'menu' (seleção), 'quiz' (questões), 'analyzing' (loader cyberpunk), ou 'report' (resultado)
+  const [activeStep, setActiveStep] = useState('menu');
+  
+  // selectedDifficulty rastreia a dificuldade do exame atualmente em execução: 'facil' | 'medio' | 'dificil'
+  const [selectedDifficulty, setSelectedDifficulty] = useState(null);
+  
+  // currentQuestions guarda o array de perguntas filtradas correspondente à dificuldade selecionada
   const [currentQuestions, setCurrentQuestions] = useState([]);
+  
+  // currentQuestionIndex rastreia o índice numérico (0-indexed) da pergunta ativa no questionário
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   
-  // Selection and verification states
+  // --- Estados de Seleção e Confirmação de Resposta ---
+  // selectedOptionIndex armazena o índice da opção de resposta atualmente selecionada pelo usuário (null se nenhuma)
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
+  
+  // isAnswerConfirmed sinaliza se o usuário já clicou em confirmar a resposta corrente, revelando o gabarito
   const [isAnswerConfirmed, setIsAnswerConfirmed] = useState(false);
+  
+  // correctAnswersCount armazena o contador de respostas que o usuário assinalou corretamente durante o exame
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   
-  // Report results state
+  // --- Estados de Resultado Final ---
+  // examResult armazena o objeto de retorno da validação da API contendo se passou, porcentagem e XP bônus ganhos
   const [examResult, setExamResult] = useState(null);
 
-  // Load questions based on difficulty
+  /**
+   * Inicia o exame para a dificuldade fornecida.
+   * Valida as credenciais atuais de bloqueio antes de inicializar os estados.
+   * 
+   * @param {string} difficulty - Nível do exame escolhido: 'facil', 'medio' ou 'dificil'
+   */
   const startExam = (difficulty) => {
-    // Check lock status first
+    // --- Controle de Acesso e Bloqueio Criptográfico ---
+    // Caso o usuário tente acessar o exame médio mas ainda esteja classificado como 'facil', bloqueia a execução
     if (difficulty === 'medio' && unlockedExamLevel === 'facil') return;
+    // Caso tente acessar o exame difícil mas ainda não tenha alcançado o status necessário, bloqueia a execução
     if (difficulty === 'dificil' && unlockedExamLevel !== 'dificil') return;
 
+    // Filtra as perguntas estáticas pelo nível de dificuldade correspondente ao exame iniciado
     const filtered = EXAM_QUESTIONS.filter(q => q.difficulty === difficulty);
-    // Shuffle questions slightly or just use them direct
+    
+    // Atualiza os estados locais reiniciando as métricas de progresso do exame corrente
     setCurrentQuestions(filtered);
     setSelectedDifficulty(difficulty);
     setCurrentQuestionIndex(0);
     setCorrectAnswersCount(0);
     setSelectedOptionIndex(null);
     setIsAnswerConfirmed(false);
+    
+    // Transiciona a interface para o modo de questionário ativo ('quiz')
     setActiveStep('quiz');
   };
 
+  /**
+   * Assinala uma opção de resposta para a pergunta corrente.
+   * Não executa nenhuma ação se o gabarito da resposta atual já tiver sido confirmado.
+   * 
+   * @param {number} idx - Índice numérico da opção clicada pelo usuário
+   */
   const handleSelectOption = (idx) => {
     if (isAnswerConfirmed) return;
     setSelectedOptionIndex(idx);
   };
 
+  /**
+   * Confirma a opção selecionada pelo usuário, travando novas escolhas
+   * e validando se a resposta é condizente com o gabarito da questão.
+   */
   const handleConfirmAnswer = () => {
+    // Retorna se o usuário não tiver selecionado nenhuma das alternativas ainda
     if (selectedOptionIndex === null) return;
     
+    // Obtém o objeto da questão corrente
     const currentQuestion = currentQuestions[currentQuestionIndex];
+    // Verifica se a opção selecionada corresponde ao índice da resposta correta
     const isCorrect = selectedOptionIndex === currentQuestion.correctIndex;
     
+    // Se estiver correta, incrementa o contador local de acertos
     if (isCorrect) {
       setCorrectAnswersCount(prev => prev + 1);
     }
     
+    // Altera o estado para revelação do feedback visual imediato (cores verde e vermelho)
     setIsAnswerConfirmed(true);
   };
 
+  /**
+   * Avança para a próxima questão do exame ou finaliza o questionário,
+   * direcionando para o passo assíncrono de análise do gabarito.
+   */
   const handleNextQuestion = () => {
+    // Se ainda houver mais perguntas a responder no array filtrado, avança o índice
     if (currentQuestionIndex < currentQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedOptionIndex(null);
       setIsAnswerConfirmed(false);
     } else {
-      // Finished all questions! Trigger analysis
+      // Se era a última pergunta, transiciona para a animação holográfica de processamento
       setActiveStep('analyzing');
     }
   };
 
-  // Run the evaluation when entering 'analyzing' step
+  /**
+   * Effect Hook para simular um processo holográfico/cibernético de descriptografia e
+   * validação das respostas quando o estado entra no passo de 'analyzing'.
+   */
   useEffect(() => {
+    // Apenas executa se o passo ativo for especificamente o processador cyberpunk
     if (activeStep !== 'analyzing') return;
 
     const runAnalysis = async () => {
-      // Simulate 2 seconds of futuristic scanning analysis
+      // Simula 2 segundos de latência com setTimeout para exibir os logs de console hacker retro-futurista
       setTimeout(async () => {
+        // Envia os resultados computados localmente para o GameContext persistir o progresso
         const result = await completeExamLevel(selectedDifficulty, correctAnswersCount);
+        // Salva o objeto retornado de sucesso/pontuação no estado local de relatórios
         setExamResult(result);
+        // Altera o fluxo visual para exibir o card de diagnóstico e relatório ('report')
         setActiveStep('report');
       }, 2000);
     };
@@ -101,13 +177,20 @@ export default function ExamScreen({ navigation }) {
     runAnalysis();
   }, [activeStep]);
 
-  // Render difficulty cards
+  /**
+   * Função utilitária de renderização para desenhar os Cards de Exames na tela de Menu.
+   * Configura estilos neon, bloqueios, recordes e ações dependendo dos estados de segurança.
+   */
   const renderDifficultyCard = (levelKey, title, questionsCount, xpReward, desc, iconColor, statusText) => {
+    // Define se o nível está bloqueado baseando-se nas regras de progressão hierárquica
     const isLocked = (levelKey === 'medio' && unlockedExamLevel === 'facil') ||
                      (levelKey === 'dificil' && unlockedExamLevel !== 'dificil');
+    // Busca a pontuação recorde salva para este nível
     const score = examScores[levelKey];
+    // Valida se o recorde alcançou a nota de corte para aprovação (Facil: >=11, Medio: >=14, Dificil: >=11)
     const hasPassed = score !== null && score >= (levelKey === 'facil' ? 11 : levelKey === 'medio' ? 14 : 11);
 
+    // Determina a cor e o tipo de borda neon baseado no nível de ameaça cibernética
     let borderType = 'border';
     if (!isLocked) {
       if (levelKey === 'facil') borderType = 'neonPrimary';
@@ -121,6 +204,7 @@ export default function ExamScreen({ navigation }) {
         style={[styles.difficultyCard, isLocked && styles.difficultyCardLocked]}
         borderType={borderType}
       >
+        {/* Cabeçalho do Card contendo Título e Tags de Progresso */}
         <View style={styles.diffHeader}>
           <View style={styles.diffTitleRow}>
             <Text style={[styles.diffTitle, { color: isLocked ? theme.colors.textMuted : iconColor }]}>
@@ -135,8 +219,10 @@ export default function ExamScreen({ navigation }) {
           <Text style={styles.diffReward}>{xpReward}</Text>
         </View>
 
+        {/* Descrição em formato de sinopse sobre os objetivos e pilares deste exame */}
         <Text style={styles.diffDesc}>{desc}</Text>
         
+        {/* Rodapé do Card exibindo quantidade de questões e status recorde */}
         <View style={styles.diffFooter}>
           <Text style={styles.diffDetails}>📋 {questionsCount} Questões  |  ⏱️ Sem limite</Text>
           {score !== null && (
@@ -144,6 +230,7 @@ export default function ExamScreen({ navigation }) {
           )}
         </View>
 
+        {/* Botão de ação condicional (Bloqueado / Refazer / Iniciar) */}
         <TouchableOpacity
           onPress={() => startExam(levelKey)}
           disabled={isLocked}
@@ -164,6 +251,9 @@ export default function ExamScreen({ navigation }) {
     );
   };
 
+  /**
+   * Retorna os textos e ações do Header unificado dinamicamente baseando-se no activeStep.
+   */
   const getHeaderProps = () => {
     switch (activeStep) {
       case 'quiz':
@@ -176,7 +266,7 @@ export default function ExamScreen({ navigation }) {
         return {
           title: 'ANALISANDO GABARITO',
           subtitle: 'PROCESSANDO RESPOSTAS CRIPTOGRAFADAS...',
-          onBack: () => {} // disable back click during analysis
+          onBack: () => {} // Desabilita clique de voltar durante processamento de IA/análise
         };
       case 'report':
         return {

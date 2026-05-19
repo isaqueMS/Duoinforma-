@@ -1,3 +1,15 @@
+/**
+ * BASE DE DADOS DE QUESTÕES DOS EXAMES DE CERTIFICAÇÃO (EXAM_QUESTIONS)
+ * 
+ * Este arquivo define o conjunto estático de perguntas estruturadas utilizadas pela tela de exames (ExamScreen).
+ * Cada objeto dentro do array representa uma questão de cibersegurança e segue o seguinte schema de dados:
+ * 
+ * @property {number} id - Identificador numérico único sequencial da questão.
+ * @property {string} difficulty - Nível do exame correspondente ('facil' | 'medio' | 'dificil').
+ * @property {string} question - Enunciado detalhado descrevendo um cenário ou conceito de segurança.
+ * @property {string[]} options - Array contendo exatamente 4 alternativas textuais de resposta.
+ * @property {number} correctIndex - Índice numérico (0 a 3) correspondente à alternativa correta no array de opções.
+ */
 export const EXAM_QUESTIONS = [
   // ==========================================
   // NÍVEL FÁCIL (1 - 15)

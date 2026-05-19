@@ -1,41 +1,73 @@
+// Import core React library hooks for state management
 import React, { useState } from 'react';
+
+// Import essential layout components, text displays, touchable buttons, scrollable content containers, and animation systems
 import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity, ScrollView, Animated } from 'react-native';
+
+// Import LinearGradient component from expo package
 import { LinearGradient } from 'expo-linear-gradient';
+
+// Import our design system style configurations
 import { theme } from '../styles/theme';
+
+// Import our customized game state context provider
 import { useGame } from '../context/GameContext';
+
+// Import local mock training dataset
 import { trainingData } from '../data/trainingData';
+
+// Import custom UI helper interfaces
 import GlassCard from '../components/GlassCard';
 import NeonButton from '../components/NeonButton';
 import ProgressBar from '../components/ProgressBar';
 import Header from '../components/Header';
 
+/**
+ * TrainingScreen component.
+ * Allows agents to practice reading digital publications and labeling them as either "Confiável" or "Suspeito".
+ * Provides feedback detailing how to spot typical disinformation tricks.
+ * 
+ * @param {object} navigation - React Navigation routing context
+ */
 export default function TrainingScreen({ navigation }) {
+  // Extract completed states and completion dispatcher from global hook
   const { completedTrainings, completeTraining } = useGame();
   
-  // Filter out already completed items, or just cycle through all of them
-  // We want to allow training even if completed, but user only gets points once!
+  // Track training index carousel states
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null); // 'real' or 'fake'
+  
+  // Track selected analysis value ('real' | 'fake')
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  
+  // Toggle verification explanation block
   const [showFeedback, setShowFeedback] = useState(false);
+  
+  // Card transition opacity interpolation reference
   const [fadeAnim] = useState(new Animated.Value(1));
 
+  // Determine current active item from training dataset
   const currentItem = trainingData[currentIndex];
+  
+  // Verify if this specific card was already completed previously
   const isCompletedAlready = completedTrainings.includes(currentItem.id);
 
+  // Checks and dispatches progress scoring
   const handleAnswer = (answer) => {
     if (showFeedback) return;
     
     setSelectedAnswer(answer);
     setShowFeedback(true);
 
+    // Evaluate correct matching option
     const isCorrect = (answer === 'real' && currentItem.isReal) || (answer === 'fake' && !currentItem.isReal);
     
-    // Earn 50 XP if correct and not already completed
+    // Dispatch score addition (+50 XP) inside global state manager if not done already
     completeTraining(currentItem.id, isCorrect, 50);
   };
 
+  // Carousel transition forward animator with subtle fade effects
   const handleNext = () => {
-    // Fade transition to next card
+    // Fade out
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 250,
@@ -43,8 +75,11 @@ export default function TrainingScreen({ navigation }) {
     }).start(() => {
       setSelectedAnswer(null);
       setShowFeedback(false);
+      
+      // Advance to next post, wrapping around when index reaches the end
       setCurrentIndex((prev) => (prev + 1) % trainingData.length);
       
+      // Fade in
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 250,
@@ -53,6 +88,7 @@ export default function TrainingScreen({ navigation }) {
     });
   };
 
+  // Validation flag used to style feedback borders and headers
   const isCorrectAnswer = selectedAnswer && (
     (selectedAnswer === 'real' && currentItem.isReal) || 
     (selectedAnswer === 'fake' && !currentItem.isReal)
@@ -64,6 +100,7 @@ export default function TrainingScreen({ navigation }) {
         colors={[theme.colors.background, '#090D1E']}
         style={styles.container}
       >
+        {/* Dynamic header options for back stack routing */}
         <Header 
           title="TREINAMENTO" 
           subtitle="SIMULADOR DE DESINFORMAÇÃO" 
@@ -73,7 +110,7 @@ export default function TrainingScreen({ navigation }) {
         
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-          {/* Progress indicators */}
+          {/* Interactive Progress Tracking slider indicators */}
           <View style={styles.progContainer}>
             <ProgressBar 
               progress={(currentIndex + 1) / trainingData.length} 
@@ -84,12 +121,12 @@ export default function TrainingScreen({ navigation }) {
 
           <Animated.View style={{ opacity: fadeAnim, width: '100%' }}>
             
-            {/* The Cyber Post Card */}
+            {/* The Digital Publication mock card wrapper */}
             <GlassCard 
               style={styles.postCard} 
               borderType={showFeedback ? (currentItem.isReal ? 'accent' : 'danger') : 'primary'}
             >
-              {/* Category / Source Badge */}
+              {/* Category / Source Badge indicators */}
               <View style={styles.badgeRow}>
                 <View style={styles.sourceBadge}>
                   <Text style={styles.sourceText}>{currentItem.title}</Text>
@@ -101,7 +138,7 @@ export default function TrainingScreen({ navigation }) {
                 )}
               </View>
 
-              {/* Author Info */}
+              {/* Author Information section */}
               <View style={styles.authorRow}>
                 <View style={styles.authorAvatar}>
                   <Text style={styles.avatarLabel}>{currentItem.author.charAt(0).toUpperCase()}</Text>
@@ -112,10 +149,10 @@ export default function TrainingScreen({ navigation }) {
                 </View>
               </View>
 
-              {/* Post Content */}
+              {/* Central post statement description body */}
               <Text style={styles.contentBody}>{currentItem.content}</Text>
 
-              {/* Post Stats (Social Card mockup decoration) */}
+              {/* Mock interaction metrics for premium feel */}
               <View style={styles.socialStats}>
                 <Text style={styles.socialStatText}>❤️ {currentItem.likes || '2.5K'}</Text>
                 <Text style={styles.socialStatText}>🔁 {currentItem.shares || '1.1K'}</Text>
@@ -123,10 +160,11 @@ export default function TrainingScreen({ navigation }) {
               </View>
             </GlassCard>
 
-            {/* Answer buttons or Feedback details */}
+            {/* Render decision action buttons or detailed expert feedback */}
             {!showFeedback ? (
               <View style={styles.choiceContainer}>
                 
+                {/* Submit Confiável verification */}
                 <TouchableOpacity 
                   onPress={() => handleAnswer('real')}
                   style={[styles.choiceBtn, styles.realBtn]}
@@ -136,6 +174,7 @@ export default function TrainingScreen({ navigation }) {
                   <Text style={styles.choiceLabel}>CONFIÁVEL</Text>
                 </TouchableOpacity>
 
+                {/* Submit Suspeito verification */}
                 <TouchableOpacity 
                   onPress={() => handleAnswer('fake')}
                   style={[styles.choiceBtn, styles.fakeBtn]}
@@ -149,7 +188,7 @@ export default function TrainingScreen({ navigation }) {
             ) : (
               <View style={styles.feedbackContainer}>
                 
-                {/* Result banner */}
+                {/* Result header banner */}
                 <GlassCard 
                   style={[
                     styles.resultBanner, 
@@ -169,7 +208,7 @@ export default function TrainingScreen({ navigation }) {
                   </Text>
                 </GlassCard>
 
-                {/* Explanation text card */}
+                {/* Cybernetic Explanations data blocks */}
                 <GlassCard style={styles.explanationCard} borderType="primary">
                   <Text style={styles.explTitle}>ANÁLISE DOS VETORES:</Text>
                   <Text style={styles.explBody}>{currentItem.explanation}</Text>
@@ -180,6 +219,7 @@ export default function TrainingScreen({ navigation }) {
                   ))}
                 </GlassCard>
 
+                {/* Carousel stepper action trigger */}
                 <NeonButton 
                   title="PRÓXIMO DESAFIO" 
                   onPress={handleNext}
@@ -198,6 +238,7 @@ export default function TrainingScreen({ navigation }) {
   );
 }
 
+// StyleSheet settings containing premium glassy attributes and cyberpunk neon styles
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -409,3 +450,4 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
   }
 });
+

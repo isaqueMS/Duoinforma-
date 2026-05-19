@@ -1,24 +1,50 @@
+// Import core React library
 import React from 'react';
+
+// Import essential layout components, text displays, scroll controllers, touch structures, and status bar APIs
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
+
+// Import LinearGradient from Expo package
 import { LinearGradient } from 'expo-linear-gradient';
+
+// Import our design system style configurations
 import { theme } from '../styles/theme';
+
+// Import authentication status hooks
 import { useAuth } from '../context/AuthContext';
+
+// Import gameplay and level stats context hooks
 import { useGame } from '../context/GameContext';
+
+// Import local customized structural elements
 import GlassCard from '../components/GlassCard';
 import ProgressBar from '../components/ProgressBar';
 import Header from '../components/Header';
 
+/**
+ * HomeScreen component.
+ * Renders the primary dashboard view where authenticated agents monitor their XP progress,
+ * access modules (Training, Scanner, Course Enciclopédia), and unlock Exam evaluations.
+ * 
+ * @param {object} navigation - React Navigation routing prop
+ */
 export default function HomeScreen({ navigation }) {
+  // Extract user authentication record
   const { user } = useAuth();
+
+  // Extract gaming scores, streak counts, and progression functions from unified context
   const { points, streak, getCurrentLevel, getNextLevelProgress, unlockedExamLevel } = useGame();
   
+  // Resolve current level and points milestone calculations
   const currentLevel = getCurrentLevel();
   const progressData = getNextLevelProgress();
 
+  // Helper function to trigger Tab Navigation redirects
   const handleNavigate = (tabName) => {
     navigation.navigate(tabName);
   };
 
+  // Helper function to trigger Screen Stack transitions
   const handleNavigateToScreen = (screenName) => {
     navigation.navigate(screenName);
   };
@@ -30,6 +56,7 @@ export default function HomeScreen({ navigation }) {
         colors={[theme.colors.background, '#0A0F24']}
         style={styles.container}
       >
+        {/* Neon themed dashboard header */}
         <Header 
           title="DUOINFORMA" 
           subtitle="SISTEMA DE DEFESA COGNITIVA" 
@@ -39,7 +66,7 @@ export default function HomeScreen({ navigation }) {
         
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-          {/* Level Progress Dashboard */}
+          {/* Level Progress Dashboard Glass Card */}
           <GlassCard style={styles.dashboardCard} borderType="neonPrimary">
             <View style={styles.dashboardHeader}>
               <View>
@@ -51,6 +78,7 @@ export default function HomeScreen({ navigation }) {
               </View>
             </View>
 
+            {/* Linear neon progress bar detailing level thresholds */}
             <ProgressBar 
               progress={progressData.percentage} 
               label="PROGRESSÃO DE PONTOS" 
@@ -64,13 +92,12 @@ export default function HomeScreen({ navigation }) {
             </View>
           </GlassCard>
 
-          {/* Menu / Game Mode Grid Title */}
+          {/* Core Interactive Module Grid */}
           <Text style={styles.sectionTitle}>MÓDULOS OPERACIONAIS</Text>
 
-          {/* Grid of Main Modes */}
           <View style={styles.modesContainer}>
             
-            {/* Mode 1: Training */}
+            {/* Module 1: Daily Training Simulator */}
             <TouchableOpacity 
               onPress={() => handleNavigate('Treinamento')} 
               style={styles.modeCardWrapper}
@@ -89,7 +116,7 @@ export default function HomeScreen({ navigation }) {
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Mode 2: Verification */}
+            {/* Module 2: Digital Laser Scanner Verification */}
             <TouchableOpacity 
               onPress={() => handleNavigate('Verificação')} 
               style={styles.modeCardWrapper}
@@ -110,7 +137,7 @@ export default function HomeScreen({ navigation }) {
 
           </View>
 
-          {/* Mode 4: Exam Simulator (Full-width custom purple/neon banner) */}
+          {/* Module 3: Exam Simulator credentials validation */}
           <TouchableOpacity 
             onPress={() => handleNavigateToScreen('Exame')} 
             style={styles.examBannerWrapper}
@@ -144,7 +171,7 @@ export default function HomeScreen({ navigation }) {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Mode 3: Learning (Full-width custom button banner) */}
+          {/* Module 4: Learning Course Enciclopédia */}
           <TouchableOpacity 
             onPress={() => handleNavigateToScreen('Aprendizado')} 
             style={styles.learningBannerWrapper}
@@ -169,7 +196,7 @@ export default function HomeScreen({ navigation }) {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Critical Tip Card */}
+          {/* Educational Anti-Fake News Tip Card */}
           <GlassCard style={styles.tipCard} borderType="accent">
             <View style={styles.tipHeader}>
               <Text style={styles.tipTitle}>💡 DIRETRIZ ANTI-DESINFORMAÇÃO</Text>
@@ -185,6 +212,7 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
+// Styling definitions for card boundaries, grid cards, and custom banners
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -468,3 +496,4 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   }
 });
+

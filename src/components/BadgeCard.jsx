@@ -1,22 +1,41 @@
+// Import core React library
 import React from 'react';
+
+// Import essential layout components from React Native
 import { StyleSheet, View, Text } from 'react-native';
+
+// Import our design system style tokens
 import { theme } from '../styles/theme';
 
+/**
+ * BadgeCard component.
+ * Displays achievements or level badges with visual indicators
+ * for locked and unlocked states.
+ * 
+ * @param {string} badge - The emoji/icon representing the achievement/badge
+ * @param {string} title - The name of the badge or level title
+ * @param {string} description - The criteria or description for unlocking this badge
+ * @param {boolean} isUnlocked - True if the user has completed this milestone
+ */
 export default function BadgeCard({ badge, title, description, isUnlocked = false }) {
   return (
     <View style={[
       styles.card,
+      // Dynamic background border style based on unlock state
       isUnlocked ? styles.unlockedCard : styles.lockedCard
     ]}>
       <View style={[
         styles.iconContainer,
+        // Dynamic circular icon style
         isUnlocked ? styles.unlockedIcon : styles.lockedIcon
       ]}>
+        {/* Renders locked padlock or actual emoji based on unlock status */}
         <Text style={styles.badgeText}>{isUnlocked ? badge : '🔒'}</Text>
       </View>
       <View style={styles.info}>
         <Text style={[
           styles.title,
+          // Dynamic title color scheme
           isUnlocked ? styles.unlockedTitle : styles.lockedTitle
         ]}>{title}</Text>
         <Text style={styles.description}>{description}</Text>
@@ -25,6 +44,7 @@ export default function BadgeCard({ badge, title, description, isUnlocked = fals
   );
 }
 
+// Styles definition for standard and highlighted state badges
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',

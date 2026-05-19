@@ -1,8 +1,25 @@
+// Import React to build the component
 import React from 'react';
+
+// Import core stylesheet and view components from React Native
 import { StyleSheet, View } from 'react-native';
+
+// Import BlurView from Expo to implement native glassmorphism blur overlays
 import { BlurView } from 'expo-blur';
+
+// Import theme style variables
 import { theme } from '../styles/theme';
 
+/**
+ * GlassCard component.
+ * Implements a high-fidelity glassmorphism card with dark opacity, 
+ * customizable blur intensity, and neon borders based on active state.
+ * 
+ * @param {React.ReactNode} children - Nested component content
+ * @param {object} style - Optional inline style overrides
+ * @param {number} intensity - Blur opacity overlay intensity (0-100)
+ * @param {string} borderType - Color scheme of borders ('primary' | 'neonPrimary' | etc.)
+ */
 export default function GlassCard({ children, style, intensity = 40, borderType = 'primary' }) {
   // Determine border color based on theme
   const getBorderColor = () => {
@@ -23,6 +40,7 @@ export default function GlassCard({ children, style, intensity = 40, borderType 
       { borderColor: getBorderColor() },
       style
     ]}>
+      {/* Renders the native blur effect on iOS/Android or falls back on web */}
       <BlurView intensity={intensity} tint="dark" style={styles.blur}>
         <View style={styles.content}>
           {children}
@@ -32,6 +50,7 @@ export default function GlassCard({ children, style, intensity = 40, borderType 
   );
 }
 
+// Styling definitions for the glassmorphism component
 const styles = StyleSheet.create({
   container: {
     borderRadius: theme.roundness.lg,
@@ -51,3 +70,4 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
   }
 });
+

@@ -1,19 +1,40 @@
+// Import core React hooks
 import React, { useEffect, useRef } from 'react';
+
+// Import essential layout, positioning, image, and animation APIs from React Native
 import { StyleSheet, View, Text, Animated, Dimensions, Image } from 'react-native';
+
+// Import LinearGradient from Expo to construct cyberpunk backdrop gradient washes
 import { LinearGradient } from 'expo-linear-gradient';
+
+// Import our design system style configurations
 import { theme } from '../styles/theme';
+
+// Import our custom neon action button component
 import NeonButton from '../components/NeonButton';
 
+// Get structural screen layout dimensions
 const { width } = Dimensions.get('window');
+
+// Load corporate branding logo resource
 const LOGO = require('../../assets/logo.png');
 
+/**
+ * SplashScreen component.
+ * Renders the introductory animated welcome landing page.
+ * Features a laser sweep scan animation across a floating scaled logo.
+ * 
+ * @param {object} navigation - React Navigation routing prop
+ */
 export default function SplashScreen({ navigation }) {
+  // Animation state coordinates
   const scanAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.3)).current;
 
+  // React hook to handle initial scaling spring, fade in, and repeating laser loops
   useEffect(() => {
-    // Start animations
+    // Start initial entrance transitions simultaneously
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -28,7 +49,7 @@ export default function SplashScreen({ navigation }) {
       })
     ]).start();
 
-    // Laser loop animation
+    // Loop laser sweeping continuously
     Animated.loop(
       Animated.sequence([
         Animated.timing(scanAnim, {
@@ -45,10 +66,12 @@ export default function SplashScreen({ navigation }) {
     ).start();
   }, []);
 
+  // Triggers stack navigation redirecting onto Auth Login screen
   const handleStart = () => {
     navigation.navigate('Login');
   };
 
+  // Interpolate laser line translation position bounds [0 to 100px]
   const laserY = scanAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 100]
@@ -59,7 +82,7 @@ export default function SplashScreen({ navigation }) {
       colors={[theme.colors.background, '#0A122E', '#060814']}
       style={styles.container}
     >
-      {/* Cyber Grid Background lines */}
+      {/* Cyber Grid Background lines creating high-tech visual feel */}
       <View style={styles.gridOverlay} pointerEvents="none">
         <View style={styles.gridLineH} />
         <View style={styles.gridLineH} />
@@ -70,12 +93,12 @@ export default function SplashScreen({ navigation }) {
       </View>
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        {/* Logo com laser sweep */}
+        {/* Logo container with vertical laser scan effect */}
         <View style={styles.logoContainer}>
           <Animated.View style={[styles.logoHex, { transform: [{ scale: logoScale }] }]}>
             <Image source={LOGO} style={styles.logoImage} resizeMode="contain" />
             
-            {/* Holographic Laser line sweeping */}
+            {/* Holographic Laser line sweeping across logo boundaries */}
             <Animated.View style={[
               styles.laser, 
               { transform: [{ translateY: laserY }] }
@@ -83,17 +106,18 @@ export default function SplashScreen({ navigation }) {
           </Animated.View>
         </View>
 
-        {/* Title & Slogan */}
+        {/* Title logo and current application version details */}
         <Text style={styles.logoText}>DUO<Text style={{ color: theme.colors.primary }}>INFORMA</Text></Text>
         <Text style={styles.version}>VER 2.0.0 // HOLOGRAPHIC SYSTEMS</Text>
         
+        {/* Slogan highlight card */}
         <View style={styles.taglineBox}>
           <Text style={styles.taglineText}>
             "A verdade não é dada. Ela é verificada. Desenvolva seu escudo contra a desinformação digital."
           </Text>
         </View>
 
-        {/* Start Button */}
+        {/* Action Button to boot the primary login dashboard */}
         <View style={styles.buttonWrapper}>
           <NeonButton 
             title="INICIAR SISTEMA" 
@@ -103,7 +127,7 @@ export default function SplashScreen({ navigation }) {
         </View>
       </Animated.View>
 
-      {/* Cyberpunk Footer info */}
+      {/* Cyberpunk styled security system signatures at the bottom */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>DUOINFORMA DECRYPTOR v2.0.0</Text>
         <Text style={styles.footerSec}>CONEXÃO ENCRIPTADA E SEGURA</Text>
@@ -112,6 +136,7 @@ export default function SplashScreen({ navigation }) {
   );
 }
 
+// Styles definition for splash layout, positioning grids, and neon elements
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -241,3 +266,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
   }
 });
+

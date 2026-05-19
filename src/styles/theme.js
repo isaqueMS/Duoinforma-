@@ -1,7 +1,14 @@
+/**
+ * Custom design system and style tokens for the Duoinforma App.
+ * Built with a high-fidelity "Cyber Defense" aesthetic, using deep space blues, dark metallic overlays,
+ * and neon colors with simulated glassmorphism values.
+ */
 export const theme = {
+  // Theme Color System
   colors: {
-    background: '#070A13', // Deep cyber space blue-black
-    surface: '#0E1326',    // Dark metallic glass card background
+    background: '#070A13', // Deep cyber space blue-black (primary screen background)
+    surface: '#0E1326',    // Dark metallic glass card background (cards, overlays)
+
     surfaceSecondary: '#181F38', // Lighter container
     
     primary: '#00F0FF',    // Neon Cyan / Blue

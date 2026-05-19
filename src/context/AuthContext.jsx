@@ -1,28 +1,34 @@
-// Import React core utilities and context API
+// Importação do React core e utilitários para Context API do React
 import React, { createContext, useState, useEffect, useContext } from 'react';
-// Import Firebase configuration flags and services
+
+// Importação das flags de status do Firebase e serviços expostos (Autenticação e Firestore)
 import { isFirebaseEnabled, auth, db } from '../../firebase.config';
-// Firebase Authentication functions used throughout the context
+
+// Importação de funções cruciais do módulo oficial de Autenticação do Firebase
 import { 
-  signInAnonymously, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  updateProfile
+  signInAnonymously,               // Função para login anônimo sem credenciais
+  signInWithEmailAndPassword,      // Autentica o usuário a partir do e-mail e senha no console
+  createUserWithEmailAndPassword,  // Cadastra e autentica um novo e-mail e senha no console
+  signOut,                         // Encerra a sessão ativa do usuário ativo no Firebase
+  onAuthStateChanged,              // Listener do estado de autenticação (dispara a cada mudança)
+  updateProfile                    // Atualiza metadados básicos (como displayName) no nó do Firebase
 } from 'firebase/auth';
-// Firestore document helpers for profile persistence
+
+// Importação de métodos auxiliares do Firestore para ler/gravar perfis em coleções no banco
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-// Async storage for offline user fallback
+
+// Biblioteca padrão de persistência local AsyncStorage para suporte a cenários offline e emulação
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// Platform detection (web vs native) for Google Sign‑In configuration
+
+// API para detecção da plataforma de execução corrente (ex: 'ios', 'android', 'web')
 import { Platform } from 'react-native';
 
-// Configure Google Sign-in on Mobile when Firebase is enabled
+// Inicializa a configuração do Google Sign-In no Mobile de forma dinâmica (apenas nativo)
 if (Platform.OS !== 'web') {
   try {
     const { GoogleSignin } = require('@react-native-google-signin/google-signin');
     GoogleSignin.configure({
+      // Credencial Web Client ID criada no console Google Cloud para autenticação cruzada
       webClientId: '546354146563-juair62rvu8h1q06kgfsc8qh1mehrmrt.apps.googleusercontent.com',
       offlineAccess: true,
     });
@@ -31,25 +37,38 @@ if (Platform.OS !== 'web') {
   }
 }
 
-// Create a React context to expose authentication state and actions throughout the app
+// Criação do objeto do React Context para propagar as informações de sessão por todo o aplicativo
 const AuthContext = createContext({});
 
-// Provider component that wraps the app and manages auth lifecycle
+/**
+ * Provedor do Contexto de Autenticação (AuthProvider).
+ * Centraliza e distribui o ciclo de vida de login, logout e sincronização com o Firebase Auth
+ * ou AsyncStorage (em cenários simulados offline).
+ */
 export const AuthProvider = ({ children }) => {
+  // --- Estados Principais de Autenticação ---
+  // user guarda o objeto do usuário ativo contendo uid, email, displayName e photoURL
   const [user, setUser] = useState(null);
+  
+  // loading sinaliza se o processo inicial de validação da sessão ainda está sendo processado
   const [loading, setLoading] = useState(true);
+  
+  // isOffline indica se a aplicação está rodando em modo puramente local (Firebase desativado)
   const [isOffline, setIsOffline] = useState(!isFirebaseEnabled);
+  
+  // authError armazena a mensagem traduzida do último erro gerado em fluxos de login/cadastro
   const [authError, setAuthError] = useState(null);
 
-  // Load offline user from storage on start
-    // Initialize authentication listener on mount
+  // Inicializa o listener de autenticação no montagem do componente
   useEffect(() => {
     let unsubscribe;
     
     const initAuth = async () => {
       if (isFirebaseEnabled) {
+        // Se o Firebase estiver ativo, assina o ouvinte oficial para capturar mudanças na sessão
         unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
           if (firebaseUser) {
+            // Se houver um usuário autenticado no Firebase, mapeia para o formato simplificado
             const userProfile = {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
@@ -60,12 +79,13 @@ export const AuthProvider = ({ children }) => {
             setUser(userProfile);
             setIsOffline(false);
           } else {
+            // Se nenhum usuário estiver logado, zera o estado local
             setUser(null);
           }
           setLoading(false);
         });
       } else {
-        // Fallback: load local mock user
+        // Se o Firebase estiver desativado, tenta ler a última sessão simulada no AsyncStorage
         try {
           const localUserStr = await AsyncStorage.getItem('@duoinforma_local_user');
           if (localUserStr) {
@@ -80,12 +100,18 @@ export const AuthProvider = ({ children }) => {
 
     initAuth();
 
+    // Desinscreve o listener no desmonte do componente para evitar vazamento de memória (Memory Leak)
     return () => {
       if (unsubscribe) unsubscribe();
     };
   }, []);
 
-    // Simulated offline login – generates a mock user and persists locally
+  /**
+   * Realiza login offline simulado gerando credenciais randômicas e persistindo localmente.
+   * Utilizado quando o Firebase está inativo ou indisponível.
+   * 
+   * @param {string} [cleanEmail] - E-mail digitado pelo desenvolvedor no formulário
+   */
   const loginOffline = async (cleanEmail) => {
     const mockUid = 'offline_' + Math.random().toString(36).substr(2, 9);
     const mockUser = {
@@ -100,8 +126,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
-  // Login with Google (Platform Hybrid)
-    // Main Google Sign‑In flow – handles web and native platforms, with fallback to offline simulation
+  /**
+   * Fluxo principal de login com o Google.
+   * Trata separadamente a web (com popup Firebase) e dispositivos nativos mobile.
+   * Suporta fallback para emulador ou falha de chaves simulando fluxo de login offline.
+   */
   const loginWithGoogle = async () => {
     setLoading(true);
     setAuthError(null);
@@ -122,9 +151,10 @@ export const AuthProvider = ({ children }) => {
         await loginOffline();
       }
     } else {
-      // Mobile - Real Google Sign In with Simulated fallback
+      // Plataforma Mobile - Executa login com Google nativo ou redireciona para simulação
       try {
         if (!isFirebaseEnabled) {
+          // Caso Firebase esteja desativado nas configs locais, lança fluxo simulado
           throw new Error('SIMULATED_GOOGLE_FLOW');
         }
 
@@ -143,8 +173,9 @@ export const AuthProvider = ({ children }) => {
         await signInWithCredential(auth, credential);
       } catch (error) {
         console.log('Erro no Google Sign-In real:', error);
-        // Fallback to simulation if GoogleSignin fails due to developer setup or missing Play Services,
-        // or user cancels, or developer explicitly wants mock.
+        
+        // Trata erros comuns de setup (como falta do Google Play Services em emuladores comuns, 
+        // cancelamentos intencionais ou chaves SHAs desalinhadas no Firebase Console)
         if (
           error.code === 'SIGN_IN_CANCELLED' || 
           error.code === 'IN_PROGRESS' || 
@@ -156,6 +187,7 @@ export const AuthProvider = ({ children }) => {
           error.message === 'SIMULATED_GOOGLE_FLOW'
         ) {
           setLoading(false);
+          // Lança a exceção específica identificando que a tela de login deve abrir a janela de simulação dev
           throw new Error('SIMULATED_GOOGLE_FLOW');
         }
         setLoading(false);
@@ -166,22 +198,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Simulated Google Auth on Mobile Emulator (creates a real Firebase User based on the Google Email)
-    // Simulated Google authentication used on emulators or when Firebase is disabled
+  /**
+   * Login com Google simulado de alta fidelidade para ambientes de desenvolvimento ou emulador.
+   * Cria uma conta de e-mail e senha real no Firebase sob o capô baseando-se no e-mail do Google,
+   * permitindo testes funcionais completos do banco de dados na nuvem Firestore sem precisar configurar a API Google.
+   */
   const loginWithGoogleSimulated = async (email, customPassword = null) => {
     setLoading(true);
     setAuthError(null);
     const cleanEmail = email.trim();
     
-    // Create a safe, deterministic password based on the email so it's a real Firebase credentials login under the hood
+    // Gera uma senha determinística baseada no e-mail para que a conta seja real no console Firebase
     const simulatedPassword = customPassword || ('GoogleSimulated_' + cleanEmail + '_Duoinforma2026');
     
     if (isFirebaseEnabled) {
       try {
-        // Try to login
+        // Tenta autenticar o usuário diretamente no nó de e-mail e senha
         await signInWithEmailAndPassword(auth, cleanEmail, simulatedPassword);
       } catch (error) {
-        // If we tried with a custom password and it failed, throw immediately
+        // Lança o erro imediatamente caso tenha sido fornecida uma senha customizada incorreta pelo modal de desenvolvedor
         if (customPassword) {
           setLoading(false);
           const msg = _translateFirebaseError(error.code);
@@ -189,11 +224,12 @@ export const AuthProvider = ({ children }) => {
           throw new Error(msg);
         }
 
-        // If the user does not exist in Firebase, register them!
+        // Se o usuário não existir no banco (primeiro login dele), registra-o imediatamente!
         if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-email') {
           try {
             const cred = await createUserWithEmailAndPassword(auth, cleanEmail, simulatedPassword);
             const displayName = cleanEmail.split('@')[0];
+            // Configura o display name inicial usando o prefixo do e-mail
             await updateProfile(cred.user, { displayName });
           } catch (regError) {
             setLoading(false);
@@ -209,7 +245,7 @@ export const AuthProvider = ({ children }) => {
         }
       }
     } else {
-      // Offline fallback mock
+      // Fallback offline caso o Firebase esteja inativo
       const mockUser = {
         uid: 'google_offline_' + Math.random().toString(36).substr(2, 9),
         email: cleanEmail,
@@ -224,10 +260,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-
-
-  // Update display name (codinome do agente)
-    // Update the user's display name both locally and in Firebase (if enabled)
+  /**
+   * Atualiza o nome de exibição do usuário ativo.
+   * Persiste a alteração no perfil do Firebase e salva a cópia localmente no AsyncStorage.
+   * 
+   * @param {string} newName - Novo codinome inserido pelo usuário
+   */
   const updateDisplayName = async (newName) => {
     if (!newName || !newName.trim()) return;
     const trimmed = newName.trim();
@@ -243,7 +281,7 @@ export const AuthProvider = ({ children }) => {
     const updatedUser = { ...user, displayName: trimmed };
     setUser(updatedUser);
 
-    // Persist locally
+    // Salva a cópia dos dados cadastrais localmente
     try {
       const existing = await AsyncStorage.getItem('@duoinforma_local_user');
       if (existing) {
@@ -255,8 +293,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout
-    // Sign out the user, clear local storage and reset context state
+  /**
+   * Desloga o usuário atual, limpando todos os estados e storages locais.
+   */
   const logoutUser = async () => {
     setLoading(true);
     if (isFirebaseEnabled) {
@@ -266,13 +305,18 @@ export const AuthProvider = ({ children }) => {
         console.error('Erro ao deslogar Firebase:', error);
       }
     }
+    // Remove as chaves persistidas no AsyncStorage referentes ao usuário e pontuação de jogo
     await AsyncStorage.removeItem('@duoinforma_local_user');
     await AsyncStorage.removeItem('@duoinforma_game_state');
+    
+    // Zera o estado local de autenticação
     setUser(null);
     setLoading(false);
   };
 
-  // Translate Firebase error codes to Portuguese
+  /**
+   * Traduz códigos e códigos de erros retornados pela API do Firebase para mensagens amigáveis em Português.
+   */
   const _translateFirebaseError = (code) => {
     const errors = {
       'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
@@ -302,6 +346,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Hook shortcut for consuming AuthContext
+// Hook customizado simplificado para consumo direto do AuthContext nos componentes
 export const useAuth = () => useContext(AuthContext);
 export default AuthContext;

@@ -1,13 +1,28 @@
+// Import React core library
 import React from 'react';
+
+// Import essential layout components and status indicators from React Native
 import { StyleSheet, View, ActivityIndicator, Text, Platform } from 'react-native';
+
+// Import React Navigation container provider
 import { NavigationContainer } from '@react-navigation/native';
+
+// Import Native Stack Navigation library helpers
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+// Import Bottom Tab Navigation library helpers
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+// Import Ionicons vectors from Expo package
 import { Ionicons } from '@expo/vector-icons';
+
+// Import our design system style configurations
 import { theme } from '../styles/theme';
+
+// Import custom authentication state hook
 import { useAuth } from '../context/AuthContext';
 
-// Import Screens
+// Import local page components
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -17,13 +32,20 @@ import VerificationScreen from '../screens/VerificationScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ExamScreen from '../screens/ExamScreen';
 
+// Initialize navigation controllers
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+/**
+ * TabNavigator component.
+ * Renders the primary bottom tab dashboard layout (Home, Treinamento, Verificação, Perfil)
+ * when a user is signed in. Features a customized glassmorphism design.
+ */
 function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
+        // Dynamic icon loading based on active state and routing name
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
@@ -57,7 +79,10 @@ function TabNavigator() {
   );
 }
 
-// Auth Stack — Unauthenticated flow
+/**
+ * AuthStack component.
+ * Layout stack loaded when user session is unauthorized (Splash and Login).
+ */
 function AuthStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
@@ -67,7 +92,11 @@ function AuthStack() {
   );
 }
 
-// App Stack — Authenticated flow
+/**
+ * AppStack component.
+ * Main stack layout grouping the central bottom tabs with secondary sub-views
+ * like Aprendizado/Exames.
+ */
 function AppStack() {
   return (
     <Stack.Navigator
@@ -83,11 +112,15 @@ function AppStack() {
   );
 }
 
+/**
+ * AppNavigator component.
+ * Root navigator bootstrapping AuthStack or AppStack depending on user authenticated state.
+ */
 export default function AppNavigator() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    // Show a splash-style loading indicator while auth state is resolving
+    // Show premium loading spinner when app is checking cached credentials
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator color={theme.colors.primary} size="large" />
@@ -97,11 +130,13 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
+      {/* Route matching based on session status */}
       {user ? <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );
 }
 
+// Styling definitions for tabs navigation and loader
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
@@ -137,3 +172,4 @@ const styles = StyleSheet.create({
     marginTop: 2,
   }
 });
+

@@ -1,12 +1,36 @@
+// Import core React library
 import React from 'react';
+
+// Import essential React Native layout and interactive components
 import { StyleSheet, View, Text, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
+
+// Import Ionicons icon collection from Expo icons library
 import { Ionicons } from '@expo/vector-icons';
+
+// Import our central design theme configuration
 import { theme } from '../styles/theme';
+
+// Import custom authentication state hook
 import { useAuth } from '../context/AuthContext';
+
+// Import custom game state and level configuration hook
 import { useGame } from '../context/GameContext';
 
+// Load our system logo asset
 const LOGO = require('../../assets/logo.png');
 
+/**
+ * Header component.
+ * Rendered at the top of pages to display consistent application state, navigation,
+ * dynamic titles/subtitles, user profile navigation, and system logo badge.
+ * 
+ * @param {string} title - The page header title
+ * @param {string} subtitle - Secondary descriptive title below the main title
+ * @param {object} navigation - React Navigation navigation prop to navigate between pages
+ * @param {boolean} showBack - Forced flag to render back chevron button
+ * @param {boolean} showAvatar - Toggle avatar/profile image rendering in header
+ * @param {function} onBack - Explicit callback function for handling back press overrides
+ */
 export default function Header({ 
   title, 
   subtitle, 
@@ -15,19 +39,24 @@ export default function Header({
   showAvatar = true,
   onBack
 }) {
+  // Extract authenticated user object
   const { user } = useAuth();
+  // Extract level and badge information
   const { getCurrentLevel } = useGame();
   
   const currentLevel = getCurrentLevel();
+  // Dynamically calculate if a back action is valid and possible
   const canGoBack = showBack || !!onBack || (navigation && navigation.canGoBack());
 
+  // Triggers navigation jump to the Perfil tab on header avatar click
   const handleAvatarPress = () => {
     if (navigation) {
-      // In a tab navigator, we can jump to Perfil or navigate
+      // Navigate to 'Perfil' screen using navigation prop
       navigation.navigate('Perfil');
     }
   };
 
+  // Triggers back navigation or execute callback override
   const handleBackPress = () => {
     if (onBack) {
       onBack();
@@ -38,6 +67,7 @@ export default function Header({
 
   return (
     <View style={styles.headerContainer}>
+      {/* Left Area: Renders Back button or standard system logo */}
       <View style={styles.leftSection}>
         {canGoBack ? (
           <TouchableOpacity 
@@ -57,6 +87,7 @@ export default function Header({
         )}
       </View>
 
+      {/* Center Area: Title and Subtitle display with truncation */}
       <View style={styles.centerSection}>
         <Text style={styles.titleText} numberOfLines={1}>
           {title}
@@ -68,6 +99,7 @@ export default function Header({
         )}
       </View>
 
+      {/* Right Area: Dynamic Avatar image or level badge */}
       <View style={styles.rightSection}>
         {showAvatar && (
           <TouchableOpacity 
@@ -89,9 +121,11 @@ export default function Header({
   );
 }
 
+// Layout styling rules using high-fidelity neon borders and platform shadows
 const styles = StyleSheet.create({
   headerContainer: {
     width: '100%',
+    // Dynamic height compensation on Android devices to account for status bar height
     height: Platform.OS === 'android' ? 64 + (StatusBar.currentHeight || 24) : 64,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 0,
     flexDirection: 'row',
@@ -213,3 +247,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
+

@@ -1,12 +1,24 @@
+// Import core React library hooks
 import React, { useState } from 'react';
+
+// Import essential layout components, text interfaces, safe area containers, scroll wrappers, and touch elements
 import { StyleSheet, View, Text, SafeAreaView, ScrollView, TouchableOpacity, Image } from 'react-native';
+
+// Import LinearGradient from Expo package
 import { LinearGradient } from 'expo-linear-gradient';
+
+// Import our design system style configurations
 import { theme } from '../styles/theme';
+
+// Import our game context hook to manage points/XP
 import { useGame } from '../context/GameContext';
+
+// Import local custom high-fidelity components
 import GlassCard from '../components/GlassCard';
 import NeonButton from '../components/NeonButton';
 import Header from '../components/Header';
 
+// Static documentation content mapping famous techniques and quiz structures
 const LESSONS = [
   {
     id: 'l1',
@@ -64,24 +76,37 @@ const LESSONS = [
   }
 ];
 
+/**
+ * LearningScreen component.
+ * Renders the course catalog screen where agents read core digital safety concepts
+ * and answer challenge quizes to earn points.
+ * 
+ * @param {object} navigation - React Navigation routing prop
+ */
 export default function LearningScreen({ navigation }) {
+  // Extract point accumulation context
   const { addPoints } = useGame();
+
+  // Local component states
   const [activeLesson, setActiveLesson] = useState(null);
   const [quizAnswer, setQuizAnswer] = useState(null);
   const [showQuizResult, setShowQuizResult] = useState(false);
   const [completedLessons, setCompletedLessons] = useState([]);
 
+  // Opens active document text
   const handleOpenLesson = (lesson) => {
     setActiveLesson(lesson);
     setQuizAnswer(null);
     setShowQuizResult(false);
   };
 
+  // Handles verification of quiz selection and adds XP rewards
   const handleAnswerQuiz = (optionIdx) => {
     if (showQuizResult) return;
     setQuizAnswer(optionIdx);
     setShowQuizResult(true);
 
+    // If choice matches correct index, reward XP and tag lesson as done
     if (optionIdx === activeLesson.quiz.correctIdx) {
       if (!completedLessons.includes(activeLesson.id)) {
         setCompletedLessons([...completedLessons, activeLesson.id]);
@@ -96,6 +121,7 @@ export default function LearningScreen({ navigation }) {
         colors={[theme.colors.background, '#0A0E1D']}
         style={styles.container}
       >
+        {/* Customized Dynamic Header navigation options */}
         <Header 
           title={activeLesson ? activeLesson.title : "ENCICLOPÉDIA"} 
           subtitle={activeLesson ? activeLesson.category : "TÁTICAS DE DEFESA COGNITIVA"} 
@@ -112,6 +138,7 @@ export default function LearningScreen({ navigation }) {
                 Selecione um arquivo de treinamento para decifrar as técnicas de manipulação mais utilizadas da rede:
               </Text>
 
+              {/* Loop rendering lesson file list items */}
               {LESSONS.map((lesson) => {
                 const isDone = completedLessons.includes(lesson.id);
                 return (
@@ -150,19 +177,19 @@ export default function LearningScreen({ navigation }) {
             </View>
           ) : (
             <View style={{ width: '100%' }}>
-              {/* Back Button */}
+              {/* Back to course selector button */}
               <TouchableOpacity onPress={() => setActiveLesson(null)} style={styles.backBtn}>
                 <Text style={styles.backBtnText}>← VOLTAR AOS ARQUIVOS</Text>
               </TouchableOpacity>
 
-              {/* Lesson Read Area */}
+              {/* Comprehensive Document Content Display card */}
               <GlassCard style={styles.lessonDetailCard} borderType="neonPrimary">
                 <Text style={styles.detailCategory}>{activeLesson.category}</Text>
                 <Text style={styles.detailTitle}>{activeLesson.title}</Text>
                 <Text style={styles.detailBody}>{activeLesson.content}</Text>
               </GlassCard>
 
-              {/* Quiz Area */}
+              {/* Interactive Mini-Challenge Area */}
               <Text style={styles.quizTitle}>⚡ MINI-DESAFIO DE DECRIPTAÇÃO</Text>
               
               <GlassCard style={styles.quizCard} borderType="secondary">
@@ -199,6 +226,7 @@ export default function LearningScreen({ navigation }) {
                   );
                 })}
 
+                {/* Option validation feedbacks */}
                 {showQuizResult && (
                   <View style={styles.quizResultBox}>
                     {quizAnswer === activeLesson.quiz.correctIdx ? (
@@ -229,6 +257,7 @@ export default function LearningScreen({ navigation }) {
   );
 }
 
+// Styles definition for Enciclopédia grid cards and course contents
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -424,3 +453,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   }
 });
+

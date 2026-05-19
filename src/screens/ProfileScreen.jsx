@@ -1,59 +1,115 @@
+// Importação do React e Hooks necessários para gerenciar estados locais e disparar ações nos ciclos de vida do componente
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { theme } from '../styles/theme';
-import { useAuth } from '../context/AuthContext';
-import { useGame } from '../context/GameContext';
-import GlassCard from '../components/GlassCard';
-import StatCard from '../components/StatCard';
-import BadgeCard from '../components/BadgeCard';
-import Header from '../components/Header';
 
+// Importação dos componentes fundamentais do React Native para estruturação e estilização da interface nativa
+import { 
+  StyleSheet,       // Utilitário para compilação e validação de estilos JavaScript em folhas nativas
+  View,             // Bloco genérico de divisão para organizar estruturas flexbox
+  Text,             // Componente padrão para renderização de caracteres e strings estilizadas
+  SafeAreaView,     // Container que evita que o conteúdo invada áreas de sistema (notch, status bar, etc.)
+  ScrollView,       // Painel de exibição que habilita rolagem fluida para conteúdos longos
+  TouchableOpacity, // Wrapper interativo que providencia feedback de opacidade instantâneo ao toque
+  TextInput,        // Campo de entrada de texto para interação e digitação do usuário
+  Image             // Componente de carregamento e exibição de mídias de imagem local ou remota (URL)
+} from 'react-native';
+
+// Importação do gradiente de cores da biblioteca oficial Expo LinearGradient
+import { LinearGradient } from 'expo-linear-gradient';
+
+// Importação do tema de design da aplicação (cores cyberpunk, fontes, espaçamentos e raios de borda)
+import { theme } from '../styles/theme';
+
+// Importação do contexto de autenticação para gerenciar sessões do Firebase Auth
+import { useAuth } from '../context/AuthContext';
+
+// Importação do contexto de jogo para gerenciar XP, conquistas, exames e dados do ranking local
+import { useGame } from '../context/GameContext';
+
+// Importação de componentes reutilizáveis baseados em glassmorphism translúcido e cartões neon
+import GlassCard from '../components/GlassCard';  // Bloco de visual premium cyberpunk com desfoque e bordas brilhantes
+import StatCard from '../components/StatCard';    // Exibe métricas chave (como XP, scans) com gradiente interno
+import BadgeCard from '../components/BadgeCard';  // Componente que renderiza medalhas desbloqueáveis ou trancadas
+import Header from '../components/Header';        // Cabeçalho padronizado da navegação superior
+
+/**
+ * Componente funcional do Perfil do Agente (ProfileScreen).
+ * Renderiza informações do usuário logado, permite edição do nome de exibição,
+ * exibe idade e localização configurados localmente, apresenta contadores de XP, 
+ * conquistas trancadas/destrancadas e renderiza a ladder de classificação global do leaderboard.
+ */
 export default function ProfileScreen({ navigation }) {
-  const { user, logoutUser, updateDisplayName } = useAuth();
+  // Acesso às funções e dados expostos pelo provedor de autenticação (AuthContext)
   const { 
-    points, 
-    completedTrainings, 
-    achievements, 
-    scannerHistory, 
-    getCurrentLevel, 
-    ACHIEVEMENTS, 
-    examScores, 
-    unlockedExamLevel, 
-    leaderboard, 
-    fetchLeaderboard,
-    age,
-    location,
-    updateUserMetadata
+    user,               // Dados cadastrais do agente autenticado (objeto do Firebase Auth)
+    logoutUser,         // Função responsável por deslogar e limpar a sessão ativa do usuário
+    updateDisplayName   // Função responsável por sincronizar o novo nome no perfil do Firebase
+  } = useAuth();
+
+  // Acesso às estatísticas de jogo e conquistas do provedor global de jogo (GameContext)
+  const { 
+    points,               // Total de pontos de experiência (XP) acumulados pelo jogador
+    completedTrainings,   // Array de IDs dos treinamentos finalizados pelo agente
+    achievements,         // Lista de IDs contendo todas as medalhas e medalhões conquistados
+    scannerHistory,       // Histórico de análises feitas no verificador de links
+    getCurrentLevel,      // Retorna o título, nível e emoji do usuário baseando-se no XP atual
+    ACHIEVEMENTS,         // Banco de dados estático contendo todas as medalhas cadastradas no sistema
+    examScores,           // Recordes de acertos para os exames Fácil, Médio e Difícil
+    unlockedExamLevel,    // Progresso hierárquico nos exames ('facil', 'medio' ou 'dificil')
+    leaderboard,          // Array de jogadores do ranking global fictício + o usuário ativo
+    fetchLeaderboard,     // Dispara a requisição para organizar e classificar o ranking de pontuação
+    age,                  // Idade cadastrada localmente do usuário ativo
+    location,             // Cidade/País do usuário cadastrados localmente
+    updateUserMetadata    // Função para salvar a idade e localização de forma persistente
   } = useGame();
   
+  // --- Estados de Edição do Nome de Exibição (Firebase) ---
+  // isEditing rastreia se o TextInput de edição do nome de exibição está visível na tela
   const [isEditing, setIsEditing] = useState(false);
+  // tempName serve para armazenar o valor que o usuário digita antes de confirmar a modificação
   const [tempName, setTempName] = useState('');
 
+  // --- Estados de Edição dos Registros de Identidade (Metadados Locais) ---
+  // isEditingMetadata rastreia o estado de edição da Idade e Localização na interface
   const [isEditingMetadata, setIsEditingMetadata] = useState(false);
+  // tempAge armazena a idade editada temporariamente no campo TextInput correspondente
   const [tempAge, setTempAge] = useState('');
+  // tempLocation armazena a localização editada temporariamente no campo TextInput correspondente
   const [tempLocation, setTempLocation] = useState('');
 
+  // Sincroniza o valor inicial do nome de exibição cadastrado assim que o componente monta
   useEffect(() => {
     if (user?.displayName) {
       setTempName(user.displayName);
     }
   }, [user?.displayName]);
 
+  // Sincroniza a idade e localização salvas nos metadados globais assim que são alteradas no contexto
   useEffect(() => {
     setTempAge(age ? String(age) : '');
     setTempLocation(location || '');
   }, [age, location]);
 
+  /**
+   * Salva os metadados digitados de Idade e Localização no AsyncStorage.
+   * Conclui limpando o modo de edição na interface.
+   */
   const handleSaveMetadata = async () => {
-    await updateUserMetadata(tempAge.trim() ? tempAge.trim() : null, tempLocation.trim() ? tempLocation.trim() : null);
+    await updateUserMetadata(
+      tempAge.trim() ? tempAge.trim() : null, 
+      tempLocation.trim() ? tempLocation.trim() : null
+    );
     setIsEditingMetadata(false);
   };
 
+  // Dispara o download/carregamento da lista de líderes (leaderboard) na inicialização da tela
   useEffect(() => {
     fetchLeaderboard();
   }, []);
 
+  /**
+   * Envia a alteração do nome de exibição do Firebase de forma assíncrona.
+   * Só dispara caso o campo não esteja inteiramente vazio.
+   */
   const handleSaveName = async () => {
     if (tempName.trim()) {
       await updateDisplayName(tempName.trim());
@@ -61,10 +117,14 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  // Computa a classificação do nível cibernético (ex: Recruta, Defensor, Oráculo) e seu emoji correspondente
   const currentLevel = getCurrentLevel();
 
+  // Encontra qual é a posição numérica do usuário ativo na lista ordenada de pontuação global
   const userRankInLeaderboard = leaderboard.findIndex(p => p.name === (user?.displayName || 'Você'));
+  // Define o índice ordinal de classificação: #1, #2, etc. (se não achar na lista de elite, assume última posição + 1)
   const userRankNum = userRankInLeaderboard !== -1 ? userRankInLeaderboard + 1 : leaderboard.length + 1;
+  // Define se o card do jogador deve ser exibido como um container flutuante no rodapé do ranking
   const showCurrentPlayerAtBottom = userRankInLeaderboard === -1;
 
   return (
